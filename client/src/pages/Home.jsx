@@ -9,12 +9,16 @@ const Home = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const search = searchParams.get('search') || '';
     const category = searchParams.get('category') || '';
+    const [page, setPage] = useState(1);
+    const limit = 12; // Items per page
 
     useEffect(() => {
         let url = 'http://localhost:5000/api/products';
         const params = new URLSearchParams();
         if (search) params.append('search', search);
         if (category) params.append('category', category);
+        params.append('page', page);
+        params.append('limit', limit);
 
         if (params.toString()) url += `?${params.toString()}`;
 
@@ -23,7 +27,7 @@ const Home = () => {
             .then(data => {
                 if (data.message === 'success') setProducts(data.data);
             });
-    }, [search, category]);
+    }, [search, category, page]);
 
     const categories = ["All", "Electronics", "Fashion", "Home", "Gaming", "Audio"];
 
@@ -33,6 +37,7 @@ const Home = () => {
                 params.delete('category');
                 return params;
             });
+            setPage(1); // Reset page
             return;
         }
 
@@ -41,11 +46,13 @@ const Home = () => {
                 params.delete('category');
                 return params;
             });
+            setPage(1);
         } else {
             setSearchParams(params => {
                 params.set('category', cat);
                 return params;
             });
+            setPage(1);
         }
     };
 
@@ -95,6 +102,27 @@ const Home = () => {
                             ))}
                         </div>
                     )}
+
+                    {/* Pagination Controls */}
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '40px' }}>
+                        <button
+                            disabled={page === 1}
+                            onClick={() => setPage(p => p - 1)}
+                            className="btn btn-secondary"
+                            style={{ opacity: page === 1 ? 0.5 : 1, cursor: page === 1 ? 'not-allowed' : 'pointer' }}
+                        >
+                            Previous
+                        </button>
+                        <span style={{ display: 'flex', alignItems: 'center', fontWeight: 'bold' }}>Page {page}</span>
+                        <button
+                            disabled={products.length < limit}
+                            onClick={() => setPage(p => p + 1)}
+                            className="btn btn-secondary"
+                            style={{ opacity: products.length < limit ? 0.5 : 1, cursor: products.length < limit ? 'not-allowed' : 'pointer' }}
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
             </div>
         </PageTransition>

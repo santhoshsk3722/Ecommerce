@@ -10,6 +10,7 @@ const ProductDetail = () => {
     const navigate = useNavigate();
     const { addToCart } = useCart();
     const [product, setProduct] = useState(null);
+    const [relatedProducts, setRelatedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -18,6 +19,12 @@ const ProductDetail = () => {
             .then(data => {
                 if (data.message === 'success') {
                     setProduct(data.data);
+                    // Fetch Related Products
+                    fetch(`http://localhost:5000/api/products?category=${data.data.category}&excludeId=${id}&limit=4`)
+                        .then(res => res.json())
+                        .then(relData => {
+                            if (relData.message === 'success') setRelatedProducts(relData.data);
+                        });
                 }
                 setLoading(false);
             });
@@ -121,6 +128,29 @@ const ProductDetail = () => {
                 </div>
 
                 <ReviewSection productId={product.id} />
+
+                {/* Related Products Section */}
+                {relatedProducts.length > 0 && (
+                    <div style={{ marginTop: '80px', borderTop: '1px solid #eee', paddingTop: '40px' }}>
+                        <h2 style={{ marginBottom: '30px' }}>You might also like</h2>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '30px' }}>
+                            {relatedProducts.map(p => (
+                                <motion.div
+                                    key={p.id}
+                                    whileHover={{ y: -5 }}
+                                    onClick={() => navigate(`/product/${p.id}`)}
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <div style={{ background: 'white', borderRadius: '8px', padding: '20px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', height: '100%' }}>
+                                        <img src={p.image} alt={p.title} style={{ width: '100%', height: '150px', objectFit: 'contain', marginBottom: '15px' }} />
+                                        <h4 style={{ fontSize: '16px', margin: '0 0 10px 0', height: '40px', overflow: 'hidden' }}>{p.title}</h4>
+                                        <div style={{ color: 'var(--primary)', fontWeight: 'bold' }}>${p.price}</div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </PageTransition>
     );

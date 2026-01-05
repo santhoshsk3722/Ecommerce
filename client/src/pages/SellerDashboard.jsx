@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { Link } from 'react-router-dom';
 
 const SellerDashboard = () => {
     const { user } = useAuth();
@@ -55,9 +56,16 @@ const SellerDashboard = () => {
     if (!user || user.role !== 'seller') return <div className="container">Access Denied</div>;
 
     return (
-        <div style={{ padding: '20px' }}>
-            <h2>Seller Dashboard</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '40px', marginTop: '20px' }}>
+        <div className="container">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                <h2>Seller Dashboard</h2>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <a href="/seller/orders" className="btn btn-secondary" style={{ padding: '10px 20px', textDecoration: 'none' }}>Manage Orders</a>
+                    <button className="btn btn-primary" style={{ padding: '10px 20px' }}>+ Add Product</button>
+                </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '40px' }}>
 
                 {/* Add Product Form */}
                 <div style={{ background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #e0e0e0', height: 'fit-content' }}>
@@ -107,7 +115,7 @@ const SellerDashboard = () => {
                 {/* Product List */}
                 <div>
                     <h3 style={{ marginBottom: '15px' }}>My Products</h3>
-                    <div style={{ display: 'grid', gap: '15px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         {products.map(p => (
                             <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '15px', background: 'white', border: '1px solid #e0e0e0', borderRadius: '8px', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
@@ -117,7 +125,10 @@ const SellerDashboard = () => {
                                         <div style={{ color: '#878787' }}>${p.price.toFixed(2)}</div>
                                     </div>
                                 </div>
-                                <button onClick={() => handleDelete(p.id)} style={{ padding: '5px 10px', background: '#ff6161', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Delete</button>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <Link to={`/seller/product/edit/${p.id}`} className="btn btn-secondary" style={{ padding: '5px 10px', textDecoration: 'none', fontSize: '14px' }}>Edit</Link>
+                                    <button onClick={() => handleDelete(p.id)} style={{ padding: '5px 10px', background: '#ff6161', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Delete</button>
+                                </div>
                             </div>
                         ))}
                         {products.length === 0 && <div style={{ color: '#878787' }}>No products listed yet.</div>}

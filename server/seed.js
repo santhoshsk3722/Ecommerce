@@ -14,6 +14,7 @@ const setupDatabase = async () => {
 
     try {
         // Drop tables
+        await serializePromise(`DROP TABLE IF EXISTS notifications`);
         await serializePromise(`DROP TABLE IF EXISTS wishlist`);
         await serializePromise(`DROP TABLE IF EXISTS reviews`);
         await serializePromise(`DROP TABLE IF EXISTS order_items`);
@@ -47,13 +48,31 @@ const setupDatabase = async () => {
             )
         `);
 
-        // Create Orders Table
+        // Create Orders Table (Updated for Logistics)
         await serializePromise(`
             CREATE TABLE orders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER,
                 total REAL NOT NULL,
                 status TEXT DEFAULT 'Processing',
+                payment_method TEXT, 
+                payment_status TEXT DEFAULT 'Pending',
+                tracking_id TEXT,
+                courier_name TEXT,
+                estimated_delivery TEXT,
+                shipping_address TEXT,
+                date TEXT DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+        `);
+
+        // Create Notifications Table
+        await serializePromise(`
+            CREATE TABLE notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                message TEXT,
+                is_read INTEGER DEFAULT 0,
                 date TEXT DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY(user_id) REFERENCES users(id)
             )
@@ -124,80 +143,90 @@ const setupDatabase = async () => {
                 price: 1299.99,
                 description: "The ultimate iPhone. Titanium design, A17 Pro chip, and the most advanced camera system ever in an iPhone.",
                 category: "Electronics",
-                image: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-max-natural-titanium-select?wid=512&hei=512&fmt=jpeg&qlt=90&.v=1692879663718",
-                rating: 4.8
+                image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=800&q=80",
+                rating: 4.8,
+                seller_id: sellerId
             },
             {
                 title: "Samsung Galaxy S24 Ultra",
                 price: 1199.99,
                 description: "Galaxy AI is here. Epic titanium design. Note Assist. Photo Assist. Circle to Search.",
                 category: "Electronics",
-                image: "https://images.samsung.com/is/image/samsung/p6pim/uk/2401/gallery/uk-galaxy-s24-s928-sm-s928bztpeub-539659392?$512_512_PNG$",
-                rating: 4.7
+                image: "https://images.unsplash.com/photo-1610945265078-3858a0828671?auto=format&fit=crop&w=800&q=80",
+                rating: 4.7,
+                seller_id: sellerId
             },
             {
                 title: "Sony WH-1000XM5",
                 price: 348.00,
                 description: "Industry Leading Noise Canceling Wireless Headphones with Auto Noise Canceling Optimizer.",
                 category: "Audio",
-                image: "https://m.media-amazon.com/images/I/51SKmu2G9FL._AC_SL1000_.jpg",
-                rating: 4.6
+                image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&w=800&q=80",
+                rating: 4.6,
+                seller_id: sellerId
             },
             {
                 title: "MacBook Air M3",
                 price: 1099.00,
                 description: "Lean. Mean. M3 machine. Supercharged by the next-generation M3 chip.",
                 category: "Electronics",
-                image: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/mba13-m3-midnight-select-202402?wid=512&hei=512&fmt=jpeg&qlt=90&.v=1708367688034",
-                rating: 4.9
+                image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca4?auto=format&fit=crop&w=800&q=80",
+                rating: 4.9,
+                seller_id: sellerId
             },
             {
                 title: "PlayStation 5 Slim",
                 price: 499.99,
                 description: "The PS5 console unleashes new gaming possibilities that you never anticipated.",
                 category: "Gaming",
-                image: "https://m.media-amazon.com/images/I/31CwPNErDGL._AC_SY450_.jpg",
-                rating: 4.9
+                image: "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=800&q=80",
+                rating: 4.9,
+                seller_id: sellerId
             },
             {
                 title: "Nike Air Force 1 '07",
                 price: 115.00,
                 description: "The radiance lives on in the Nike Air Force 1 '07, the b-ball icon that puts a fresh spin on what you know best.",
                 category: "Fashion",
-                image: "https://static.nike.com/a/images/t_PDP_1728_v1/f_auto,q_auto:eco/3cc96f43-47b6-43cb-951d-d8f73bb2f912/air-force-1-07-mens-shoes-jBrhbr.png",
-                rating: 4.5
+                image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80",
+                rating: 4.5,
+                seller_id: sellerId
             },
             {
                 title: "Adidas Ultraboost Light",
                 price: 190.00,
                 description: "Experience epic energy with the new Ultraboost Light, our lightest Ultraboost ever.",
                 category: "Fashion",
-                image: "https://assets.adidas.com/images/h_840,f_auto,q_auto,fl_lossy,c_fill,g_auto/2544222da5904aa7964ead5c00d83296_9366/Ultraboost_Light_Running_Shoes_Black_HQ6339_01_standard.jpg",
-                rating: 4.7
+                image: "https://images.unsplash.com/photo-1608231387637-bf17b075e533?auto=format&fit=crop&w=800&q=80",
+                rating: 4.7,
+                seller_id: sellerId
             },
             {
                 title: "Instant Pot Duo 7-in-1",
                 price: 99.95,
                 description: "Electric Pressure Cooker, Slow Cooker, Rice Cooker, Steamer, Sauté, Yogurt Maker, Warmer & Sterilizer.",
                 category: "Home",
-                image: "https://m.media-amazon.com/images/I/71WtwEvYDOS._AC_SL1500_.jpg",
-                rating: 4.8
+                image: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?auto=format&fit=crop&w=800&q=80",
+                rating: 4.8,
+                seller_id: sellerId
             },
             {
                 title: "Dyson V15 Detect",
                 price: 749.99,
                 description: "Dyson's most powerful, intelligent cordless vacuum. Laser reveals microscopic dust.",
                 category: "Home",
-                image: "https://dyson-h.assetsadobe2.com/is/image/content/dam/dyson/images/products/primary/368340-01.png?$responsive$&cropPathE=desktop&fit=constrain,1&wid=512",
-                rating: 4.6
+                image: "https://images.unsplash.com/photo-1558317374-a3593912094c?auto=format&fit=crop&w=800&q=80",
+                rating: 4.6,
+                seller_id: sellerId
             },
             {
                 title: "Kindle Paperwhite",
                 price: 139.99,
                 description: "Now with a 6.8” display and thinner borders, adjustable warm light, up to 10 weeks of battery life.",
                 category: "Electronics",
-                image: "https://m.media-amazon.com/images/I/51p4-EA+lBL._AC_SL1000_.jpg",
-                rating: 4.7
+                image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80",
+                rating: 4.7,
+                seller_id: sellerId
             }
         ];
 
@@ -211,6 +240,15 @@ const setupDatabase = async () => {
             });
         }
         insertProduct.finalize();
+
+        // Verify count
+        await new Promise((resolve, reject) => {
+            db.get("SELECT COUNT(*) as count FROM products", (err, row) => {
+                if (err) console.error(err);
+                else console.log(`✅ Verified: ${row.count} products found in DB.`);
+                resolve();
+            });
+        });
 
         console.log('✅ Database seeded successfully!');
     } catch (err) {

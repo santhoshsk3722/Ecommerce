@@ -14,9 +14,10 @@ app.use(express.json());
 app.get('/api/products', (req, res) => {
     let sql = "SELECT * FROM products";
     const params = [];
-    const { search, category } = req.query;
+    const { search, category, page = 1, limit = 100, excludeId } = req.query;
+    const offset = (page - 1) * limit;
 
-    if (search || category) {
+    if (search || category || excludeId) {
         sql += " WHERE 1=1";
         if (search) {
             sql += " AND (title LIKE ? OR description LIKE ?)";
@@ -26,7 +27,14 @@ app.get('/api/products', (req, res) => {
             sql += " AND category = ?";
             params.push(category);
         }
+        if (excludeId) {
+            sql += " AND id != ?";
+            params.push(excludeId);
+        }
     }
+
+    sql += " LIMIT ? OFFSET ?";
+    params.push(limit, offset);
 
     db.all(sql, params, (err, rows) => {
         if (err) {
@@ -69,8 +77,20 @@ app.post('/api/login', (req, res) => {
             return;
         }
         if (row && row.password === password) {
-            // Return role in user object
-            res.json({ "message": "success", "user": { id: row.id, name: row.name, email: row.email, role: row.role } });
+            // Return role and address info in user object
+            res.json({
+                "message": "success",
+                "user": {
+                    id: row.id,
+                    name: row.name,
+                    email: row.email,
+                    role: row.role,
+                    address: row.address,
+                    city: row.city,
+                    zip: row.zip,
+                    country: row.country
+                }
+            });
         } else {
             res.status(401).json({ "message": "Invalid credentials" });
         }
@@ -108,6 +128,20 @@ app.post('/api/products', (req, res) => {
             return;
         }
         res.json({ "message": "success", "id": this.lastID });
+    });
+});
+
+// Edit Product (Seller)
+app.put('/api/products/:id', (req, res) => {
+    const { title, price, description, category, image } = req.body;
+    const sql = "UPDATE products SET title = ?, price = ?, description = ?, category = ?, image = ? WHERE id = ?";
+
+    db.run(sql, [title, price, description, category, image, req.params.id], function (err) {
+        if (err) {
+            res.status(400).json({ "error": err.message });
+            return;
+        }
+        res.json({ "message": "updated", changes: this.changes });
     });
 });
 
@@ -150,6 +184,36 @@ app.get('/api/users', (req, res) => {
     });
 });
 
+// Update User Profile
+app.put('/api/users/:id', (req, res) => {
+    const { name, address, city, zip, country } = req.body;
+    const sql = "UPDATE users SET name = ?, address = ?, city = ?, zip = ?, country = ? WHERE id = ?";
+
+    db.run(sql, [name, address, city, zip, country, req.params.id], function (err) {
+        if (err) {
+            res.status(400).json({ "error": err.message });
+            return;
+        }
+        res.json({ "message": "updated", changes: this.changes });
+    });
+});
+
+// Delete User (Admin)
+app.delete('/api/users/:id', (req, res) => {
+    db.run("DELETE FROM users WHERE id = ?", [req.params.id], function (err) {
+        if (err) return res.status(400).json({ "error": err.message });
+        res.json({ "message": "deleted", changes: this.changes });
+    });
+});
+
+// Delete User (Admin)
+app.delete('/api/users/:id', (req, res) => {
+    db.run("DELETE FROM users WHERE id = ?", [req.params.id], function (err) {
+        if (err) return res.status(400).json({ "error": err.message });
+        res.json({ "message": "deleted", changes: this.changes });
+    });
+});
+
 // Get Platform Stats
 app.get('/api/stats', (req, res) => {
     const stats = {};
@@ -171,23 +235,26 @@ app.get('/api/stats', (req, res) => {
 
 // --- Order Routes ---
 
-// Create Order
+// Create Order (Updated with Payment)
 app.post('/api/orders', (req, res) => {
-    const { user_id, items, total } = req.body; // items: [{product_id, quantity, price}]
+    const { user_id, items, total, payment_method, shipping_address } = req.body;
 
-    // 1. Create Order
-    const insertOrder = "INSERT INTO orders (user_id, total, status) VALUES (?,?,?)";
-    const status = 'Processing'; // Default status
-    db.run(insertOrder, [user_id, total, status], function (err) {
+    const insertOrder = "INSERT INTO orders (user_id, total, status, payment_method, payment_status, shipping_address) VALUES (?,?,?,?,?,?)";
+    const status = 'Processing';
+    const payment_status = 'Paid'; // Simulating successful payment
+
+    db.run(insertOrder, [user_id, total, status, payment_method, payment_status, shipping_address], function (err) {
         if (err) {
             res.status(400).json({ "error": err.message });
             return;
         }
         const orderId = this.lastID;
 
-        // 2. Insert Items (Simplified, no transaction safety in this basic snippet but works for demo)
-        const insertItem = db.prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?,?,?,?)");
+        // Notify Seller (Demo: Notify User ID 2 - the default seller)
+        const notifySeller = "INSERT INTO notifications (user_id, message) VALUES (?,?)";
+        db.run(notifySeller, [2, `New Order #${orderId} Received!`]);
 
+        const insertItem = db.prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?,?,?,?)");
         items.forEach(item => {
             insertItem.run(orderId, item.product_id, item.quantity, item.price);
         });
@@ -200,6 +267,26 @@ app.post('/api/orders', (req, res) => {
     });
 });
 
+// Update Order (Logistics)
+app.patch('/api/orders/:id', (req, res) => {
+    const { status, tracking_id, courier_name, estimated_delivery } = req.body;
+    let sql = "UPDATE orders SET status = ?";
+    const params = [status];
+
+    if (tracking_id) { sql += ", tracking_id = ?"; params.push(tracking_id); }
+    if (courier_name) { sql += ", courier_name = ?"; params.push(courier_name); }
+    if (estimated_delivery) { sql += ", estimated_delivery = ?"; params.push(estimated_delivery); }
+
+    sql += " WHERE id = ?";
+    params.push(req.params.id);
+
+    db.run(sql, params, function (err) {
+        if (err) return res.status(400).json({ "error": err.message });
+        res.json({ "message": "updated" });
+    });
+});
+
+
 // Get User Orders
 app.get('/api/orders/:userId', (req, res) => {
     const sql = "SELECT * FROM orders WHERE user_id = ? ORDER BY date DESC";
@@ -211,6 +298,87 @@ app.get('/api/orders/:userId', (req, res) => {
         res.json({
             "message": "success",
             "data": rows
+        });
+    });
+});
+
+// Get Seller Orders (Orders containing seller's products)
+app.get('/api/orders/seller/:sellerId', (req, res) => {
+    const sql = `
+        SELECT o.*, 
+               json_group_array(json_object(
+                   'product_id', p.id,
+                   'title', p.title,
+                   'quantity', oi.quantity,
+                   'price', oi.price,
+                   'image', p.image
+               )) as items
+        FROM orders o
+        JOIN order_items oi ON o.id = oi.order_id
+        JOIN products p ON oi.product_id = p.id
+        WHERE p.seller_id = ?
+        GROUP BY o.id
+        ORDER BY o.date DESC
+    `;
+
+    // SQLite's json_group_array might differ in older versions, but let's try standard approach or do two queries.
+    // Given the environment, let's stick to a simpler JOIN and process in JS if needed, OR simplify the query.
+    // Let's try the JOIN and fetch distinct orders, then items.
+    // Actually, simpler: Get distinct orders first.
+
+    const orderSql = `
+        SELECT DISTINCT o.* 
+        FROM orders o
+        JOIN order_items oi ON o.id = oi.order_id
+        JOIN products p ON oi.product_id = p.id
+        WHERE p.seller_id = ?
+        ORDER BY o.date DESC
+    `;
+
+    db.all(orderSql, [req.params.sellerId], (err, orders) => {
+        if (err) return res.status(400).json({ "error": err.message });
+
+        // For each order, find the relevant items for this seller
+        // This is N+1 but safe for small scale. 
+        // A better way: Fetch all items for these orders and filter in memory.
+
+        // Let's iterate and fetch items for each order that belong to this seller
+        const promises = orders.map(order => new Promise((resolve) => {
+            const itemSql = `
+                SELECT oi.*, p.title, p.image 
+                FROM order_items oi
+                JOIN products p ON oi.product_id = p.id
+                WHERE oi.order_id = ? AND p.seller_id = ?
+            `;
+            db.all(itemSql, [order.id, req.params.sellerId], (err, items) => {
+                order.items = items || [];
+                resolve(order);
+            });
+        }));
+
+        Promise.all(promises).then(fullOrders => {
+            res.json({ "message": "success", "data": fullOrders });
+        });
+    });
+});
+
+// Get Single Order Detail
+app.get('/api/orders/detail/:id', (req, res) => {
+    const orderSql = "SELECT * FROM orders WHERE id = ?";
+    const itemsSql = `
+        SELECT oi.*, p.title, p.image 
+        FROM order_items oi
+        JOIN products p ON oi.product_id = p.id
+        WHERE oi.order_id = ?
+    `;
+
+    db.get(orderSql, [req.params.id], (err, order) => {
+        if (err) return res.status(400).json({ "error": err.message });
+        if (!order) return res.status(404).json({ "error": "Order not found" });
+
+        db.all(itemsSql, [req.params.id], (err, items) => {
+            if (err) return res.status(400).json({ "error": err.message });
+            res.json({ "message": "success", "data": { ...order, items } });
         });
     });
 });
@@ -292,6 +460,42 @@ app.get('/api/wishlist/:userId', (req, res) => {
         }
         res.json({ "message": "success", "data": rows });
     });
+});
+// --- Notification Routes ---
+
+app.get('/api/notifications/:userId', (req, res) => {
+    db.all("SELECT * FROM notifications WHERE user_id = ? ORDER BY date DESC", [req.params.userId], (err, rows) => {
+        if (err) return res.status(400).json({ "error": err.message });
+        res.json({ "message": "success", "data": rows });
+    });
+});
+
+app.patch('/api/notifications/read/:id', (req, res) => {
+    db.run("UPDATE notifications SET is_read = 1 WHERE id = ?", [req.params.id], function (err) {
+        if (err) return res.status(400).json({ "error": err.message });
+        res.json({ "message": "marked read" });
+    });
+});
+
+// Validate Coupon
+app.post('/api/validate-coupon', (req, res) => {
+    const { code } = req.body;
+    const coupons = {
+        'SAVE10': 10,
+        'WELCOME20': 20,
+        'OFF5': 5
+    };
+
+    if (coupons[code]) {
+        res.json({
+            "message": "success",
+            "valid": true,
+            "discountType": "percent",
+            "value": coupons[code]
+        });
+    } else {
+        res.status(400).json({ "message": "Invalid or expired coupon" });
+    }
 });
 
 app.listen(PORT, () => {

@@ -26,6 +26,19 @@ const AdminDashboard = () => {
 
     if (!user || user.role !== 'admin') return <div className="container">Access Denied</div>;
 
+    const handleDeleteUser = (id) => {
+        if (!confirm('Are you sure you want to delete this user? This cannot be undone.')) return;
+        fetch(`http://localhost:5000/api/users/${id}`, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message === 'deleted') {
+                    setUsersList(usersList.filter(u => u.id !== id));
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            });
+    };
+
     return (
         <div style={{ padding: '20px' }}>
             <h2 style={{ marginBottom: '30px' }}>Admin Dashboard</h2>
@@ -60,6 +73,7 @@ const AdminDashboard = () => {
                             <th style={{ padding: '15px' }}>Name</th>
                             <th style={{ padding: '15px' }}>Email</th>
                             <th style={{ padding: '15px' }}>Role</th>
+                            <th style={{ padding: '15px' }}>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -76,6 +90,16 @@ const AdminDashboard = () => {
                                     }}>
                                         {u.role}
                                     </span>
+                                </td>
+                                <td style={{ padding: '15px' }}>
+                                    {u.role !== 'admin' && (
+                                        <button
+                                            onClick={() => handleDeleteUser(u.id)}
+                                            style={{ background: '#ff4444', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
+                                        >
+                                            Delete
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}

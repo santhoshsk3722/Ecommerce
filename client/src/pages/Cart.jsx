@@ -2,46 +2,15 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import PaymentModal from '../components/PaymentModal';
+// import PaymentModal from '../components/PaymentModal';
 
 const Cart = () => {
     const { cart, updateQuantity, removeFromCart, cartTotal, clearCart } = useCart();
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+    // const [isPaymentOpen, setIsPaymentOpen] = useState(false); // Moved to Checkout
 
-    const handlePlaceOrder = async () => {
-        // This is called AFTER payment success
-        try {
-            const orderData = {
-                user_id: user.id || 1,
-                total: cartTotal,
-                items: cart.map(item => ({
-                    product_id: item.id,
-                    quantity: item.quantity,
-                    price: item.price
-                }))
-            };
-
-            const res = await fetch('http://localhost:5000/api/orders', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(orderData)
-            });
-
-            const data = await res.json();
-            if (data.message === 'success') {
-                alert(`Order placed successfully! Order ID: ${data.orderId} `);
-                clearCart();
-                setIsPaymentOpen(false);
-                navigate('/orders');
-            } else {
-                alert('Failed to place order: ' + (data.error || 'Unknown error'));
-            }
-        } catch (err) {
-            alert('Error placing order');
-        }
-    };
+    // Order logic moved to Checkout.jsx
 
     if (cart.length === 0) {
         return (
@@ -101,20 +70,13 @@ const Cart = () => {
                 <button
                     onClick={() => {
                         if (!user) navigate('/login');
-                        else setIsPaymentOpen(true);
+                        else navigate('/checkout');
                     }}
                     className="btn btn-secondary"
                     style={{ width: '100%', textTransform: 'uppercase', padding: '15px' }}
                 >
-                    Place Order
+                    Checkout
                 </button>
-
-                <PaymentModal
-                    isOpen={isPaymentOpen}
-                    onClose={() => setIsPaymentOpen(false)}
-                    onConfirm={handlePlaceOrder}
-                    total={cartTotal}
-                />
             </div>
         </div>
     );

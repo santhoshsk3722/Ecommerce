@@ -12,7 +12,12 @@ import { ToastProvider } from './context/ToastContext';
 import MyOrders from './pages/MyOrders';
 import Wishlist from './pages/Wishlist';
 import SellerDashboard from './pages/SellerDashboard';
+import EditProduct from './pages/EditProduct';
+import SellerOrders from './pages/SellerOrders';
+import Checkout from './pages/Checkout';
+import OrderDetail from './pages/OrderDetail';
 import AdminDashboard from './pages/AdminDashboard';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -26,10 +31,15 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/orders" element={<MyOrders />} />
+                <Route path="/order/:id" element={<OrderDetail />} />
+                <Route path="/profile" element={<Profile />} />
                 <Route path="/wishlist" element={<Wishlist />} />
                 <Route path="/seller" element={<SellerDashboard />} />
+                <Route path="/seller/product/edit/:id" element={<EditProduct />} />
+                <Route path="/seller/orders" element={<SellerOrders />} />
                 <Route path="/admin" element={<AdminDashboard />} />
               </Routes>
             </div>
