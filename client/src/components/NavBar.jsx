@@ -14,6 +14,12 @@ const NavBar = () => {
     // UI States
     const [notifications, setNotifications] = useState([]);
     const [showNotifs, setShowNotifs] = useState(false);
+    const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        navigate(`/?search=${searchTerm}`);
+    };
     useEffect(() => {
         if (user && user.id) {
             const fetchNotifs = () => {
