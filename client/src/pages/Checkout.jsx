@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import PaymentModal from '../components/PaymentModal';
 
 const Checkout = () => {
@@ -11,30 +11,16 @@ const Checkout = () => {
 
     const [address, setAddress] = useState('');
     const [couponCode, setCouponCode] = useState('');
-    const [discount, setDiscount] = useState(0); // value in dollars
-    const [paymentMethod, setPaymentMethod] = useState('Card'); // Card, UPI, COD
+    const [discount, setDiscount] = useState(0);
+    const [paymentMethod, setPaymentMethod] = useState('Card');
     const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+
+    // UI Validation & Success States
+    const [errors, setErrors] = useState({});
+    const [orderSuccess, setOrderSuccess] = useState(null); // stores order ID if success
 
     useEffect(() => {
         if (user) {
-            // Pre-fill address from user profile if available
-            // Note: Since we updated the user object in server response but AuthContext might rely on initial login state, 
-            // we ideally should fetch the fresh user data here or use what's in context if it was updated.
-            // For now, assuming context user has address if they re-logged in or if we updated context.
-            // If context is stale, we might want to fetch user data here.
-
-            // Let's fetch fresh user data to be sure
-            fetch(`http://localhost:5000/api/users/?email=${user.email}`) // Wait, api/users returns all users (admin). 
-            // We don't have a "get my profile" endpoint besides login/admin. 
-            // We can use the login response or add GET /api/users/:id.
-            // Oh wait, I didn't add GET /api/users/:id. I only added PUT.
-            // The existing GET /api/users is for admin to list ALL.
-            // However, login returns the user object.
-            // Let's assume the user has put their address in Profile and it's saved.
-            // If they haven't re-logged in, context might be stale.
-            // PROPOSAL: Add GET /api/users/:id endpoint for fetching single user profile.
-            // Actually, I can just use the address from the form.
-
             if (user.address) {
                 const fullAddress = [user.address, user.city, user.zip, user.country].filter(Boolean).join(', ');
                 setAddress(fullAddress);
@@ -44,7 +30,8 @@ const Checkout = () => {
 
     const handleApplyCoupon = () => {
         if (!couponCode.trim()) return;
-        fetch('http://localhost:5000/api/validate-coupon', {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        fetch(`${apiUrl}/api/validate-coupon`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code: couponCode })
@@ -55,13 +42,50 @@ const Checkout = () => {
                     if (data.discountType === 'percent') {
                         const discountValue = (cartTotal * data.value) / 100;
                         setDiscount(discountValue);
-                        alert(`Coupon applied! You saved $${discountValue.toFixed(2)}`);
+                        setErrors(prev => ({ ...prev, coupon: null })); // clear coupon error
                     }
                 } else {
-                    alert(data.message);
+                    setErrors(prev => ({ ...prev, coupon: data.message }));
                     setDiscount(0);
                 }
             });
+    };
+
+    const handleAutoApplyCoupon = async () => {
+        // Mocking fetching available coupons or using fixed list
+        const availableCoupons = ['SAVE10', 'WELCOME20', 'TECHORBIT50']; // In real app, fetch from API user's available coupons
+
+        let bestDiscount = 0;
+        let bestCode = '';
+
+        setErrors(prev => ({ ...prev, coupon: "Finding best deal..." }));
+
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        // Quick simulation of checking multiple
+        for (const code of availableCoupons) {
+            const res = await fetch(`${apiUrl}/api/validate-coupon`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code })
+            });
+            const data = await res.json();
+
+            if (data.valid && data.discountType === 'percent') {
+                const val = (cartTotal * data.value) / 100;
+                if (val > bestDiscount) {
+                    bestDiscount = val;
+                    bestCode = code;
+                }
+            }
+        }
+
+        if (bestDiscount > 0) {
+            setDiscount(bestDiscount);
+            setCouponCode(bestCode);
+            setErrors(prev => ({ ...prev, coupon: null }));
+        } else {
+            setErrors(prev => ({ ...prev, coupon: "No better coupons found." }));
+        }
     };
 
     const finalTotal = Math.max(0, cartTotal - discount);
@@ -77,10 +101,11 @@ const Checkout = () => {
                     price: item.price
                 })),
                 shipping_address: address,
-                payment_method: paymentMethod // Use selected payment method
+                payment_method: paymentMethod
             };
 
-            const res = await fetch('http://localhost:5000/api/orders', {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            const res = await fetch(`${apiUrl}/api/orders`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(orderData)
@@ -88,30 +113,31 @@ const Checkout = () => {
 
             const data = await res.json();
             if (data.message === 'success') {
-                alert(`Order placed successfully! Order ID: ${data.orderId}`);
+                // Show inline success instead of alert
+                setOrderSuccess(data.orderId);
                 clearCart();
-                navigate('/orders');
             } else {
-                alert('Failed to place order: ' + (data.error || 'Unknown error'));
+                setErrors(prev => ({ ...prev, general: 'Failed to place order: ' + (data.error || 'Unknown error') }));
             }
         } catch (err) {
-            alert('Error placing order');
+            setErrors(prev => ({ ...prev, general: 'Network error. Please try again.' }));
         }
     };
 
     const handleProceed = () => {
-        if (!address.trim()) {
-            alert("Please enter a shipping address.");
+        const newErrors = {};
+        if (!address.trim()) newErrors.address = "Shipping address is required.";
+
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
             return;
         }
 
         if (paymentMethod === 'Card') {
             setIsPaymentOpen(true);
         } else {
-            // For COD or UPI, place order immediately (or after simple confirm)
-            // Simulating UPI flow or COD direct confirmation
             if (paymentMethod === 'UPI') {
-                const vpa = prompt("Enter UPI ID (e.g. user@upl):");
+                const vpa = prompt("Enter UPI ID (e.g. user@upl):"); // Keeping prompt for UPI specifically as requested flow separate, or could simulate
                 if (!vpa) return;
             }
             handlePlaceOrder();
@@ -119,108 +145,173 @@ const Checkout = () => {
     };
 
     if (!user) return <div className="container">Please login to checkout.</div>;
+
+    // Order Success View
+    if (orderSuccess) {
+        return (
+            <div style={{ maxWidth: '600px', margin: '40px auto', background: 'white', padding: '50px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+                <div style={{ width: '80px', height: '80px', background: '#10b981', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', margin: '0 auto 20px' }}>✓</div>
+                <h2 style={{ fontSize: '28px', color: '#0f172a', marginBottom: '10px' }}>Order Placed Successfully!</h2>
+                <p style={{ color: '#64748b', marginBottom: '30px' }}>Your order #{orderSuccess} has been confirmed. We will ship it shortly.</p>
+                <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+                    <Link to={`/order/${orderSuccess}`} className="btn btn-primary" style={{ padding: '12px 25px' }}>Track Order</Link>
+                    <Link to="/" className="btn btn-secondary" style={{ padding: '12px 25px' }}>Continue Shopping</Link>
+                </div>
+            </div>
+        );
+    }
+
     if (cart.length === 0) return <div className="container">Your cart is empty.</div>;
 
     return (
-        <div style={{ maxWidth: '800px', margin: '40px auto', background: 'white', padding: '30px', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-            <h2 style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>Checkout</h2>
+        <div style={{ maxWidth: '900px', margin: '40px auto', background: 'white', padding: '10px 30px 40px', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+            <h2 style={{ marginBottom: '30px', borderBottom: '1px solid #eee', paddingBottom: '20px', fontSize: '24px' }}>Checkout</h2>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
+            {errors.general && (
+                <div style={{ padding: '15px', background: '#fee2e2', color: '#dc2626', borderRadius: '8px', marginBottom: '20px' }}>
+                    {errors.general}
+                </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '40px' }}>
+                {/* Left Column: Address */}
                 <div>
-                    <h3 style={{ fontSize: '18px', marginBottom: '15px' }}>Shipping Address</h3>
-                    <textarea
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                        rows="4"
-                        placeholder="Enter your full shipping address..."
-                        style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '4px', resize: 'vertical' }}
-                    />
-                    <p style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
-                        * We pre-filled this from your profile if available. You can change it for this order.
-                    </p>
+                    <h3 style={{ fontSize: '18px', marginBottom: '20px', color: '#333' }}>1. Shipping Address</h3>
+                    <div className="card" style={{ padding: '20px', border: errors.address ? '1px solid #dc2626' : 'none', boxShadow: 'none', background: '#f8fafc' }}>
+                        <textarea
+                            value={address}
+                            onChange={(e) => { setAddress(e.target.value); if (errors.address) setErrors(prev => ({ ...prev, address: null })); }}
+                            rows="4"
+                            placeholder="Enter your full shipping address..."
+                            style={{
+                                width: '100%',
+                                padding: '15px',
+                                border: '1px solid #e2e8f0',
+                                borderRadius: '8px',
+                                resize: 'vertical',
+                                fontSize: '14px',
+                                background: 'white'
+                            }}
+                        />
+                        {errors.address && <div style={{ color: '#dc2626', fontSize: '12px', marginTop: '5px' }}>{errors.address}</div>}
+                        <p style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
+                            * We pre-filled this from your profile if available. You can change it for this order.
+                        </p>
+                    </div>
+
+                    {/* Payment Method Selection */}
+                    <div style={{ marginTop: '30px' }}>
+                        <h3 style={{ fontSize: '18px', marginBottom: '20px', color: '#333' }}>2. Payment Method</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '18px', border: paymentMethod === 'Card' ? '2px solid var(--primary)' : '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', background: paymentMethod === 'Card' ? '#f0f9ff' : 'white', transition: 'all 0.2s' }}>
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    checked={paymentMethod === 'Card'}
+                                    onChange={() => setPaymentMethod('Card')}
+                                    style={{ accentColor: 'var(--primary)', width: '20px', height: '20px' }}
+                                />
+                                <div>
+                                    <div style={{ fontWeight: '600', color: '#0f172a' }}>Credit/Debit Card</div>
+                                    <div style={{ fontSize: '12px', color: '#64748b' }}>Visa, Mastercard, Amex</div>
+                                </div>
+                                <span style={{ marginLeft: 'auto', fontSize: '20px' }}>💳</span>
+                            </label>
+
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '18px', border: paymentMethod === 'UPI' ? '2px solid var(--primary)' : '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', background: paymentMethod === 'UPI' ? '#f0f9ff' : 'white', transition: 'all 0.2s' }}>
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    checked={paymentMethod === 'UPI'}
+                                    onChange={() => setPaymentMethod('UPI')}
+                                    style={{ accentColor: 'var(--primary)', width: '20px', height: '20px' }}
+                                />
+                                <div>
+                                    <div style={{ fontWeight: '600', color: '#0f172a' }}>UPI / GPay / PhonePe</div>
+                                    <div style={{ fontSize: '12px', color: '#64748b' }}>Instant payment</div>
+                                </div>
+                                <span style={{ marginLeft: 'auto', fontSize: '20px' }}>📱</span>
+                            </label>
+
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '18px', border: paymentMethod === 'COD' ? '2px solid var(--primary)' : '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', background: paymentMethod === 'COD' ? '#f0f9ff' : 'white', transition: 'all 0.2s' }}>
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    checked={paymentMethod === 'COD'}
+                                    onChange={() => setPaymentMethod('COD')}
+                                    style={{ accentColor: 'var(--primary)', width: '20px', height: '20px' }}
+                                />
+                                <div>
+                                    <div style={{ fontWeight: '600', color: '#0f172a' }}>Cash on Delivery</div>
+                                    <div style={{ fontSize: '12px', color: '#64748b' }}>Pay when it arrives</div>
+                                </div>
+                                <span style={{ marginLeft: 'auto', fontSize: '20px' }}>💵</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
+                {/* Right Column: Order Summary */}
                 <div>
-                    <h3 style={{ fontSize: '18px', marginBottom: '15px' }}>Order Summary</h3>
-                    <div style={{ background: '#f9f9f9', padding: '15px', borderRadius: '4px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                            <span>Items ({cart.length})</span>
+                    <div style={{ position: 'sticky', top: '100px', background: '#f8fafc', padding: '25px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                        <h3 style={{ fontSize: '18px', marginBottom: '20px' }}>Order Summary</h3>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '14px', color: '#64748b' }}>
+                            <span>Price ({cart.length} items)</span>
                             <span>${cartTotal.toFixed(2)}</span>
                         </div>
                         {discount > 0 && (
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', color: 'var(--success)' }}>
-                                <span>Discount</span>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', color: '#10b981', fontWeight: '500' }}>
+                                <span>Discount Coupon</span>
                                 <span>-${discount.toFixed(2)}</span>
                             </div>
                         )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontWeight: 'bold', fontSize: '18px' }}>
-                            <span>Total</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '14px', color: '#64748b' }}>
+                            <span>Delivery Charges</span>
+                            <span style={{ color: '#10b981' }}>FREE</span>
+                        </div>
+
+                        <div style={{ borderTop: '2px dashed #cbd5e1', margin: '20px 0' }}></div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '25px', fontWeight: '800', fontSize: '20px', color: '#0f172a' }}>
+                            <span>Total Payable</span>
                             <span>${finalTotal.toFixed(2)}</span>
                         </div>
-                        {/* Payment Method Selection */}
-                        <div style={{ marginTop: '30px' }}>
-                            <h3 style={{ marginBottom: '15px' }}>Payment Method</h3>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: paymentMethod === 'Card' ? '1px solid var(--primary)' : '1px solid #eee', borderRadius: '8px', cursor: 'pointer', background: paymentMethod === 'Card' ? 'var(--primary-light)' : 'white' }}>
-                                    <input
-                                        type="radio"
-                                        name="payment"
-                                        checked={paymentMethod === 'Card'}
-                                        onChange={() => setPaymentMethod('Card')}
-                                        style={{ accentColor: 'var(--primary)' }}
-                                    />
-                                    <span style={{ fontWeight: '500' }}>Credit/Debit Card</span>
-                                </label>
 
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: paymentMethod === 'UPI' ? '1px solid var(--primary)' : '1px solid #eee', borderRadius: '8px', cursor: 'pointer', background: paymentMethod === 'UPI' ? 'var(--primary-light)' : 'white' }}>
-                                    <input
-                                        type="radio"
-                                        name="payment"
-                                        checked={paymentMethod === 'UPI'}
-                                        onChange={() => setPaymentMethod('UPI')}
-                                        style={{ accentColor: 'var(--primary)' }}
-                                    />
-                                    <span style={{ fontWeight: '500' }}>UPI / GPay / PhonePe</span>
-                                </label>
-
-                                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '15px', border: paymentMethod === 'COD' ? '1px solid var(--primary)' : '1px solid #eee', borderRadius: '8px', cursor: 'pointer', background: paymentMethod === 'COD' ? 'var(--primary-light)' : 'white' }}>
-                                    <input
-                                        type="radio"
-                                        name="payment"
-                                        checked={paymentMethod === 'COD'}
-                                        onChange={() => setPaymentMethod('COD')}
-                                        style={{ accentColor: 'var(--primary)' }}
-                                    />
-                                    <span style={{ fontWeight: '500' }}>Cash on Delivery (COD)</span>
-                                </label>
+                        {/* Coupon Input */}
+                        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexDirection: 'column' }}>
+                            <div style={{ display: 'flex', gap: '10' }}>
+                                <input
+                                    type="text"
+                                    placeholder="Enter Promo Code"
+                                    value={couponCode}
+                                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                    style={{ flex: 1, padding: '12px', border: '1px solid #cbd5e1', borderRadius: '8px', background: 'white' }}
+                                />
+                                <button onClick={handleApplyCoupon} className="btn" style={{ padding: '10px 20px', background: '#0f172a', color: 'white', borderRadius: '8px' }}>Apply</button>
                             </div>
+                            <button
+                                onClick={handleAutoApplyCoupon}
+                                style={{ background: 'transparent', border: '1px dashed var(--accent)', color: 'var(--accent)', padding: '8px', borderRadius: '8px', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}
+                            >
+                                ✨ Auto-Apply Best Coupon
+                            </button>
+                            {errors.coupon && <div style={{ color: '#dc2626', fontSize: '12px' }}>{errors.coupon}</div>}
                         </div>
-                    </div>
 
-                    {/* Coupon Input */}
-                    <div style={{ marginTop: '20px' }}>
-                        <div style={{ display: 'flex', gap: '10px' }}>
-                            <input
-                                type="text"
-                                placeholder="Promo Code"
-                                value={couponCode}
-                                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                                style={{ flex: 1, padding: '10px', border: '1px solid #ccc', borderRadius: '4px' }}
-                            />
-                            <button onClick={handleApplyCoupon} className="btn btn-secondary" style={{ padding: '10px 15px' }}>Apply</button>
+                        <button
+                            onClick={handleProceed}
+                            className="btn btn-primary"
+                            style={{ width: '100%', padding: '16px', fontSize: '16px', borderRadius: '12px', boxShadow: '0 4px 14px rgba(37, 99, 235, 0.4)' }}
+                        >
+                            {paymentMethod === 'COD' ? `Place Order ($${finalTotal})` : `Pay $${finalTotal}`}
+                        </button>
+
+                        <div style={{ marginTop: '15px', textAlign: 'center', fontSize: '12px', color: '#94a3b8' }}>
+                            Safe and Secure Payments. 100% Authentic Products.
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div style={{ marginTop: '30px', textAlign: 'right' }}>
-                <button
-                    onClick={handleProceed}
-                    className="btn btn-primary"
-                    style={{ width: '100%', padding: '15px', fontSize: '16px', marginTop: '20px' }}
-                >
-                    {paymentMethod === 'COD' ? 'Place Order' : 'Proceed to Payment'}
-                </button>
             </div>
 
             <PaymentModal

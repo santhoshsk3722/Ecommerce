@@ -77,6 +77,19 @@ const Cart = () => {
                 >
                     Checkout
                 </button>
+                <div style={{ marginTop: '15px' }}>
+                    <button
+                        onClick={() => {
+                            // Dummy Copy Link
+                            const link = `https://techorbit.shop/share/cart/${Math.random().toString(36).substr(2, 9)}`;
+                            navigator.clipboard.writeText(link);
+                            alert("Cart Link Copied! Share it with friends to split the bill.");
+                        }}
+                        style={{ background: 'none', border: '1px dashed var(--primary)', color: 'var(--primary)', width: '100%', padding: '10px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                        🔗 Share Cart / Split Bill
+                    </button>
+                </div>
             </div>
         </div>
     );

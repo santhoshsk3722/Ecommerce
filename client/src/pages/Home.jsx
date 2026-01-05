@@ -13,7 +13,8 @@ const Home = () => {
     const limit = 12; // Items per page
 
     useEffect(() => {
-        let url = 'http://localhost:5000/api/products';
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        let url = `${apiUrl}/api/products`;
         const params = new URLSearchParams();
         if (search) params.append('search', search);
         if (category) params.append('category', category);
@@ -29,7 +30,26 @@ const Home = () => {
             });
     }, [search, category, page]);
 
-    const categories = ["All", "Electronics", "Fashion", "Home", "Gaming", "Audio"];
+    const [categories, setCategories] = useState(["All"]);
+    const [recommendedProducts, setRecommendedProducts] = useState([]);
+
+    useEffect(() => {
+        // Fetch Categories
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        fetch(`${apiUrl}/api/categories`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.message === 'success') {
+                    setCategories(["All", ...data.data.slice(0, 10)]);
+                }
+            });
+
+        // --- SMART RECOMMENDATIONS ---
+        const history = JSON.parse(localStorage.getItem('viewHistory') || '[]');
+        if (history.length > 0) {
+            setRecommendedProducts(history);
+        }
+    }, []);
 
     const handleCategoryClick = (cat) => {
         if (cat === "All") {
@@ -58,10 +78,26 @@ const Home = () => {
 
     return (
         <PageTransition>
-            {/* Hero Section - Only show on home without specific search/filter if desired, but here we show always for impact */}
+            {/* Hero Section */}
             {!search && !category && <HeroSlider />}
 
-            <div className="container" style={{ paddingLeft: 0, paddingRight: 0 }}>
+            <div className="container" style={{ paddingLeft: 0, paddingRight: 0, marginTop: '20px' }}>
+
+                {/* Personalized Recommendations */}
+                {!search && !category && recommendedProducts.length > 0 && (
+                    <div style={{ marginBottom: '40px' }}>
+
+                        <h2 style={{ fontSize: '24px', fontWeight: '800', marginBottom: '20px', background: 'var(--primary-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'inline-block' }}>
+                            Recently Viewed & Picked for You
+                        </h2>
+                        <div className="grid-products">
+                            {recommendedProducts.map(product => (
+                                <ProductCard key={product.id} product={product} />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Category Pills */}
                 <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '20px', marginBottom: '20px', scrollbarWidth: 'none' }}>
                     {categories.map(cat => (

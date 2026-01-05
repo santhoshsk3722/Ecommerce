@@ -14,7 +14,8 @@ const MyOrders = () => {
 
     useEffect(() => {
         if (!user) return;
-        fetch(`http://localhost:5000/api/orders/${user.id}`)
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        fetch(`${apiUrl}/api/orders/${user.id}`)
             .then(res => res.json())
             .then(data => {
                 if (data.message === 'success') {
@@ -29,7 +30,8 @@ const MyOrders = () => {
         if (!window.confirm('Are you sure you want to cancel this order?')) return;
 
         setCancellingId(orderId);
-        fetch(`http://localhost:5000/api/orders/${orderId}`, {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        fetch(`${apiUrl}/api/orders/${orderId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: 'Cancelled' })

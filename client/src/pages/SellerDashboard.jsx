@@ -11,7 +11,8 @@ const SellerDashboard = () => {
 
     useEffect(() => {
         if (user && user.role === 'seller') {
-            fetch(`http://localhost:5000/api/products/seller/${user.id}`)
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            fetch(`${apiUrl}/api/products/seller/${user.id}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.message === 'success') setProducts(data.data);
@@ -21,7 +22,8 @@ const SellerDashboard = () => {
 
     const handleDelete = (id) => {
         if (!confirm('Are you sure you want to delete this product?')) return;
-        fetch(`http://localhost:5000/api/products/${id}`, { method: 'DELETE' })
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        fetch(`${apiUrl}/api/products/${id}`, { method: 'DELETE' })
             .then(res => res.json())
             .then(data => {
                 if (data.message === 'deleted') {
@@ -33,7 +35,8 @@ const SellerDashboard = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        fetch('http://localhost:5000/api/products', {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        fetch(`${apiUrl}/api/products`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ...formData, seller_id: user.id })
@@ -44,7 +47,7 @@ const SellerDashboard = () => {
                     showToast('Product added successfully!');
                     setFormData({ title: '', price: '', category: '', image: '', description: '' });
                     // Refresh
-                    fetch(`http://localhost:5000/api/products/seller/${user.id}`)
+                    fetch(`${apiUrl}/api/products/seller/${user.id}`)
                         .then(res => res.json())
                         .then(data => setProducts(data.data));
                 } else {

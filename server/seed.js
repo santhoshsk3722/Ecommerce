@@ -118,9 +118,9 @@ const setupDatabase = async () => {
 
         // Seed Users
         const users = [
-            { name: 'Admin User', email: 'admin@shop.com', password: 'admin123', role: 'admin' },
-            { name: 'Demo Seller', email: 'seller@shop.com', password: 'seller123', role: 'seller' },
-            { name: 'Demo User', email: 'demo@example.com', password: 'password123', role: 'user' }
+            { name: 'Admin User', email: 'admin@techorbit.com', password: 'admin123', role: 'admin' },
+            { name: 'Demo Seller', email: 'seller@techorbit.com', password: 'seller123', role: 'seller' },
+            { name: 'Demo User', email: 'user@techorbit.com', password: 'user123', role: 'user' }
         ];
 
         const insertUser = db.prepare(`INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)`);

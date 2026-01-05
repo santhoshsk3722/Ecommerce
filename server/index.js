@@ -48,6 +48,21 @@ app.get('/api/products', (req, res) => {
     });
 });
 
+// Get Categories
+app.get('/api/categories', (req, res) => {
+    const sql = "SELECT DISTINCT category FROM products";
+    db.all(sql, [], (err, rows) => {
+        if (err) {
+            res.status(400).json({ "error": err.message });
+            return;
+        }
+        res.json({
+            "message": "success",
+            "data": rows.map(r => r.category).filter(Boolean)
+        });
+    });
+});
+
 // Get single product
 app.get('/api/products/:id', (req, res) => {
     const sql = "SELECT * FROM products WHERE id = ?";

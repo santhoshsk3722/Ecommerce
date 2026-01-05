@@ -11,7 +11,8 @@ const SellerOrders = () => {
 
     useEffect(() => {
         if (user && user.role === 'seller') {
-            fetch(`http://localhost:5000/api/orders/seller/${user.id}`)
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            fetch(`${apiUrl}/api/orders/seller/${user.id}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.message === 'success') {
@@ -23,7 +24,8 @@ const SellerOrders = () => {
     }, [user]);
 
     const handleUpdateStatus = (orderId, newStatus) => {
-        fetch(`http://localhost:5000/api/orders/${orderId}`, {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        fetch(`${apiUrl}/api/orders/${orderId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: newStatus })
@@ -41,7 +43,8 @@ const SellerOrders = () => {
         const trackingId = prompt("Enter Tracking ID:");
         const courierName = prompt("Enter Courier Name:");
         if (trackingId && courierName) {
-            fetch(`http://localhost:5000/api/orders/${orderId}`, {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            fetch(`${apiUrl}/api/orders/${orderId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tracking_id: trackingId, courier_name: courierName, status: 'Shipped' })

@@ -8,7 +8,8 @@ const Wishlist = () => {
 
     useEffect(() => {
         if (user) {
-            fetch(`http://localhost:5000/api/wishlist/${user.id}`)
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            fetch(`${apiUrl}/api/wishlist/${user.id}`)
                 .then(res => res.json())
                 .then(data => {
                     if (data.message === 'success') setWishlist(data.data);

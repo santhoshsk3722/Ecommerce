@@ -1,27 +1,26 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import GoogleLoginButton from '../components/GoogleLoginButton';
 
 const Login = () => {
     const [isLogin, setIsLogin] = useState(true);
-    const [authMethod, setAuthMethod] = useState('email'); // 'email', 'phone', 'google_sim'
+    const [authMethod, setAuthMethod] = useState('email');
     const [formData, setFormData] = useState({ name: '', email: '', password: '', phone: '', otp: '' });
     const { login } = useAuth();
     const { showToast } = useToast();
     const navigate = useNavigate();
-
-    // Steps for Phone Auth: 0=Input, 1=OTP
     const [phoneStep, setPhoneStep] = useState(0);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         if (authMethod === 'email') {
             const endpoint = isLogin ? '/api/login' : '/api/signup';
             try {
-                const res = await fetch(`http://localhost:5000${endpoint}`, {
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+                const res = await fetch(`${apiUrl}${endpoint}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
@@ -29,7 +28,7 @@ const Login = () => {
                 const data = await res.json();
                 if (data.message === 'success') {
                     login(data.user);
-                    showToast(`Welcome ${data.user.name.split(' ')[0]}!`);
+                    showToast(`Welcome!`);
                     navigate(data.user.role === 'seller' ? '/seller' : data.user.role === 'admin' ? '/admin' : '/');
                 } else {
                     showToast(data.message || 'Error', 'error');
@@ -37,152 +36,100 @@ const Login = () => {
             } catch (err) {
                 showToast('Connection failed', 'error');
             }
-        } else if (authMethod === 'phone') {
+        } else {
+            // Phone logic
             if (phoneStep === 0) {
-                // Simulate sending OTP
-                if (formData.phone.length < 10) return showToast('Invalid Phone Number', 'error');
+                if (formData.phone.length < 10) return showToast('Invalid Phone', 'error');
                 showToast(`OTP sent to ${formData.phone}`);
                 setPhoneStep(1);
             } else {
-                // Verify OTP (Check for '1234')
                 if (formData.otp === '1234') {
-                    // Simulate Login
                     login({ id: 999, name: 'Phone User', email: 'phone@user.com', role: 'user' });
-                    showToast(`Welcome Phone User!`);
+                    showToast(`Welcome!`);
                     navigate('/');
-                } else {
-                    showToast('Invalid OTP', 'error');
-                }
+                } else showToast('Invalid OTP', 'error');
             }
         }
     };
 
-    const handleGoogleLogin = () => {
-        // Simulate Google Popup Delay
-        setTimeout(() => {
-            login({ id: 888, name: 'Google User', email: 'google@gmail.com', role: 'user' });
-            showToast(`Logged in with Google`);
-            navigate('/');
-        }, 1500);
-    };
-
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                style={{ background: 'white', padding: '40px', borderRadius: '8px', boxShadow: 'var(--shadow-lg)', width: '100%', maxWidth: '400px' }}
-            >
-                <h2 style={{ textAlign: 'center', marginBottom: '30px', fontWeight: '800' }}>
-                    {authMethod === 'email' ? (isLogin ? 'Welcome Back' : 'Create Account') :
-                        authMethod === 'phone' ? 'Phone Login' : 'Google Login'}
-                </h2>
-
-                {/* Auth Method Tabs */}
-                {authMethod !== 'google_sim' && (
-                    <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '15px' }}>
-                        <button onClick={() => setAuthMethod('email')} style={{ flex: 1, padding: '8px', borderRadius: '4px', background: authMethod === 'email' ? 'var(--primary)' : '#f0f0f0', color: authMethod === 'email' ? 'white' : 'black', fontWeight: 'bold' }}>Email</button>
-                        <button onClick={() => setAuthMethod('phone')} style={{ flex: 1, padding: '8px', borderRadius: '4px', background: authMethod === 'phone' ? 'var(--primary)' : '#f0f0f0', color: authMethod === 'phone' ? 'white' : 'black', fontWeight: 'bold' }}>Phone</button>
+        <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', position: 'fixed', top: 0, left: 0, zIndex: 2000 }}>
+            {/* Left Side - Hero / Branding */}
+            <div style={{ flex: 1, background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px', color: 'white' }} className="login-hero">
+                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+                    <div style={{ fontSize: '48px', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ color: '#fff' }}>Tech</span>
+                        <span style={{ color: '#3b82f6' }}>Orbit</span>
                     </div>
-                )}
+                    <h1 style={{ fontSize: '36px', lineHeight: '1.2', marginBottom: '30px', fontWeight: 'bold' }}>
+                        Experience the Future <br /> of Shopping.
+                    </h1>
+                    <ul style={{ fontSize: '18px', color: '#94a3b8', lineHeight: '2' }}>
+                        <li>✓ AI-Powered Recommendations</li>
+                        <li>✓ Live Delivery Tracking</li>
+                        <li>✓ Visual Search Technology</li>
+                    </ul>
+                </motion.div>
+                {/* Decorative Circles */}
+                <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '400px', height: '400px', borderRadius: '50%', background: 'rgba(37, 99, 235, 0.1)', filter: 'blur(80px)' }}></div>
+                <div style={{ position: 'absolute', bottom: '-10%', right: '50%', width: '300px', height: '300px', borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', filter: 'blur(60px)' }}></div>
+            </div>
 
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            {/* Right Side - Form */}
+            <div style={{ width: '45%', minWidth: '400px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
+                <div style={{ width: '100%', maxWidth: '380px' }}>
+                    <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '40px', color: '#0f172a' }}>
+                        {authMethod === 'email' ? (isLogin ? 'Welcome back' : 'Create an account') : 'Phone Login'}
+                    </h2>
+
+                    <div style={{ display: 'flex', gap: '15px', marginBottom: '30px' }}>
+                        <button onClick={() => setAuthMethod('email')} style={{ paddingBottom: '5px', border: 'none', background: 'none', borderBottom: authMethod === 'email' ? '2px solid #2563eb' : '2px solid transparent', color: authMethod === 'email' ? '#2563eb' : '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>Email</button>
+                        <button onClick={() => setAuthMethod('phone')} style={{ paddingBottom: '5px', border: 'none', background: 'none', borderBottom: authMethod === 'phone' ? '2px solid #2563eb' : '2px solid transparent', color: authMethod === 'phone' ? '#2563eb' : '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>Phone Code</button>
+                    </div>
+
+                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        {authMethod === 'email' && (
+                            <>
+                                {!isLogin && (
+                                    <input type="text" placeholder="Full Name" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc' }} />
+                                )}
+                                <input type="email" placeholder="Email address" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc' }} />
+                                <input type="password" placeholder="Password" required value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc' }} />
+                            </>
+                        )}
+
+                        {authMethod === 'phone' && (
+                            phoneStep === 0 ?
+                                <input type="tel" placeholder="Phone Number" required value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc' }} /> :
+                                <input type="text" placeholder="Enter OTP (1234)" required value={formData.otp} onChange={e => setFormData({ ...formData, otp: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center', letterSpacing: '4px' }} />
+                        )}
+
+                        <button className="btn btn-primary" style={{ padding: '15px', marginTop: '10px', fontSize: '16px', borderRadius: '8px' }}>
+                            {authMethod === 'email' ? (isLogin ? 'Sign In' : 'Sign Up') : (phoneStep === 0 ? 'Send Code' : 'Verify')}
+                        </button>
+                    </form>
 
                     {authMethod === 'email' && (
-                        <>
-                            {!isLogin && (
-                                <input
-                                    type="text"
-                                    placeholder="Full Name"
-                                    required
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    style={{ padding: '12px', borderRadius: '4px', border: '1px solid #ccc' }}
-                                />
-                            )}
-                            <input
-                                type="email"
-                                placeholder="Email Address"
-                                required
-                                value={formData.email}
-                                onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                style={{ padding: '12px', borderRadius: '4px', border: '1px solid #ccc' }}
-                            />
-                            <input
-                                type="password"
-                                placeholder="Password"
-                                required
-                                value={formData.password}
-                                onChange={e => setFormData({ ...formData, password: e.target.value })}
-                                style={{ padding: '12px', borderRadius: '4px', border: '1px solid #ccc' }}
-                            />
-                        </>
+                        <div style={{ marginTop: '30px' }}>
+                            <div style={{ width: '100%', height: '1px', background: '#e2e8f0', marginBottom: '30px', position: 'relative' }}>
+                                <span style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: 'white', padding: '0 10px', color: '#94a3b8', fontSize: '12px' }}>OR CONTINUE WITH</span>
+                            </div>
+                            <GoogleLoginButton />
+                        </div>
                     )}
 
-                    {authMethod === 'phone' && (
-                        <>
-                            {phoneStep === 0 ? (
-                                <input
-                                    type="tel"
-                                    placeholder="Phone Number (10 digits)"
-                                    required
-                                    value={formData.phone}
-                                    onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                    style={{ padding: '12px', borderRadius: '4px', border: '1px solid #ccc' }}
-                                />
-                            ) : (
-                                <input
-                                    type="text"
-                                    placeholder="Enter OTP (Use 1234)"
-                                    required
-                                    maxLength="4"
-                                    value={formData.otp}
-                                    onChange={e => setFormData({ ...formData, otp: e.target.value })}
-                                    style={{ padding: '12px', borderRadius: '4px', border: '1px solid #ccc', textAlign: 'center', letterSpacing: '5px', fontSize: '20px' }}
-                                />
-                            )}
-                        </>
-                    )}
-
-                    <button className="btn btn-primary" style={{ padding: '12px' }}>
-                        {authMethod === 'email' ? (isLogin ? 'Login' : 'Sign Up') :
-                            authMethod === 'phone' ? (phoneStep === 0 ? 'Send OTP' : 'Verify & Login') : ''}
-                    </button>
-                </form>
-
-                {/* Google Login Button */}
-                {authMethod === 'email' && (
-                    <div style={{ marginTop: '20px' }}>
-                        <div style={{ textAlign: 'center', color: '#888', marginBottom: '10px', fontSize: '14px' }}>- OR -</div>
-                        <button
-                            onClick={handleGoogleLogin}
-                            type="button"
-                            style={{ width: '100%', padding: '12px', borderRadius: '4px', border: '1px solid #ddd', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontWeight: 'bold', color: '#444' }}
-                        >
-                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="" style={{ width: '20px' }} />
-                            Continue with Google
-                        </button>
-                    </div>
-                )}
-
-                {authMethod === 'email' && (
-                    <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '14px' }}>
-                        {isLogin ? "Don't have an account? " : "Already have an account? "}
-                        <span
-                            onClick={() => setIsLogin(!isLogin)}
-                            style={{ color: 'var(--primary)', fontWeight: 'bold', cursor: 'pointer' }}
-                        >
-                            {isLogin ? 'Sign Up' : 'Login'}
-                        </span>
+                    <p style={{ marginTop: '30px', textAlign: 'center', color: '#64748b' }}>
+                        {isLogin ? "Don't have an account?" : "Already have an account?"} <span onClick={() => setIsLogin(!isLogin)} style={{ color: '#2563eb', fontWeight: 'bold', cursor: 'pointer' }}>{isLogin ? 'Sign up' : 'Sign in'}</span>
                     </p>
-                )}
+                </div>
+            </div>
 
-                {authMethod === 'phone' && (
-                    <p style={{ textAlign: 'center', marginTop: '20px', fontSize: '14px', color: 'var(--primary)', cursor: 'pointer' }} onClick={() => { setAuthMethod('email'); setPhoneStep(0); }}>
-                        Back to Email Login
-                    </p>
-                )}
-            </motion.div>
+            <style>{`
+                @media (max-width: 900px) {
+                    .login-hero { display: none !important; }
+                    .login-container { width: 100% !important; }
+                }
+            `}</style>
         </div>
     );
 };

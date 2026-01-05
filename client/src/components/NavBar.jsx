@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
@@ -7,23 +7,18 @@ import { motion } from 'framer-motion';
 const NavBar = () => {
     const { cartCount } = useCart();
     const { user, logout } = useAuth();
+    const location = useLocation();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
 
-    const handleSearch = (e) => {
-        if (e.key === 'Enter') {
-            navigate(`/?search=${searchTerm}`);
-        }
-    };
-
+    // UI States
     const [notifications, setNotifications] = useState([]);
     const [showNotifs, setShowNotifs] = useState(false);
-    const [showProfileMenu, setShowProfileMenu] = useState(false);
-
     useEffect(() => {
-        if (user) {
+        if (user && user.id) {
             const fetchNotifs = () => {
-                fetch(`http://localhost:5000/api/notifications/${user.id}`)
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+                fetch(`${apiUrl}/api/notifications/${user.id}`)
                     .then(res => res.json())
                     .then(data => {
                         if (data.message === 'success') setNotifications(data.data);
@@ -34,6 +29,8 @@ const NavBar = () => {
             return () => clearInterval(interval);
         }
     }, [user]);
+
+    if (location.pathname === '/login') return null;
 
     return (
         <motion.nav
@@ -54,31 +51,42 @@ const NavBar = () => {
                     <span style={{ color: 'var(--accent)' }}>Orbit</span>
                 </Link>
 
-                <div style={{ flex: 1, maxWidth: '500px', margin: '0 20px' }}>
-                    <div style={{
-                        display: 'flex',
-                        background: 'var(--background)',
-                        borderRadius: 'var(--radius-full)',
-                        padding: '8px 16px',
-                        border: '1px solid var(--border)',
-                        transition: 'box-shadow 0.2s'
-                    }}>
+                <div style={{ flex: 1, margin: '0 20px', maxWidth: '600px', position: 'relative' }}>
+                    <form onSubmit={handleSearch} style={{ display: 'flex', alignItems: 'center', background: '#f0f5ff', borderRadius: '50px', padding: '5px 15px', border: '1px solid white', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.05)' }}>
+                        <span style={{ color: '#2874f0', fontSize: '18px', marginRight: '10px' }}>🔍</span>
                         <input
                             type="text"
-                            placeholder="Search products..."
+                            placeholder="Data-Driven Search for Products, Brands and More"
+                            className='search-input'
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            onKeyDown={handleSearch}
-                            style={{
-                                border: 'none',
-                                outline: 'none',
-                                width: '100%',
-                                background: 'transparent',
-                                fontSize: '14px'
-                            }}
+                            style={{ border: 'none', outline: 'none', flex: 1, background: 'transparent', fontSize: '14px', color: '#333' }}
                         />
-                        <span style={{ color: 'var(--text-light)' }}>🔍</span>
-                    </div>
+                        {/* Voice Search Button */}
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                                if (SpeechRecognition) {
+                                    const recognition = new SpeechRecognition();
+                                    recognition.start();
+                                    recognition.onresult = (event) => {
+                                        let speechToText = event.results[0][0].transcript;
+                                        // Clean up punctuation (common in voice input like "phones.")
+                                        speechToText = speechToText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "").trim();
+                                        setSearchTerm(speechToText);
+                                        navigate(`/?search=${speechToText}`);
+                                    };
+                                } else {
+                                    alert("Voice search not supported in this browser.");
+                                }
+                            }}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}
+                            title="Voice Search"
+                        >
+                            🎤
+                        </button>
+                    </form>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px', fontWeight: '600', fontSize: '14px' }}>
@@ -116,18 +124,20 @@ const NavBar = () => {
                                 animate={{ scale: 1 }}
                                 style={{
                                     position: 'absolute',
-                                    top: '0px',
-                                    right: '0px',
-                                    background: 'var(--error)',
+                                    top: '-8px',
+                                    right: '-8px',
+                                    background: '#ef4444', // Bright Red
                                     color: 'white',
                                     borderRadius: '50%',
-                                    width: '18px',
-                                    height: '18px',
-                                    fontSize: '10px',
+                                    width: '20px',
+                                    height: '20px',
+                                    fontSize: '11px',
                                     display: 'flex',
                                     alignItems: 'center',
                                     justifyContent: 'center',
-                                    fontWeight: 'bold'
+                                    fontWeight: 'bold',
+                                    zIndex: 10,
+                                    border: '2px solid white'
                                 }}
                             >
                                 {cartCount}

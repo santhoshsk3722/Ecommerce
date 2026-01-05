@@ -2,10 +2,21 @@ import React from 'react';
 
 const OrderTracker = ({ status, trackingId, courier, estimatedDelivery }) => {
     const steps = ['Processing', 'Shipped', 'Out for Delivery', 'Delivered'];
-    const currentStepIndex = steps.indexOf(status) !== -1 ? steps.indexOf(status) : 0;
+
+    // Normalize status for comparison
+    const normalizedStatus = (status || '').toLowerCase();
+
+    // Map status to index (case-insensitive)
+    let currentStepIndex = steps.findIndex(s => s.toLowerCase() === normalizedStatus);
+
+    // Fallback/Mapping
+    if (currentStepIndex === -1) {
+        if (normalizedStatus === 'placed') currentStepIndex = 0; // Map Placed -> Processing
+        else currentStepIndex = 0; // Default to start
+    }
 
     // Handle Cancelled State
-    if (status === 'Cancelled') {
+    if (normalizedStatus === 'cancelled') {
         return (
             <div style={{ padding: '20px', background: '#fff4f4', border: '1px solid #ffcdd2', borderRadius: '8px', color: '#c62828', textAlign: 'center', fontWeight: 'bold' }}>
                 🚫 Order Cancelled
@@ -45,7 +56,7 @@ const OrderTracker = ({ status, trackingId, courier, estimatedDelivery }) => {
                     left: '0',
                     width: `${(currentStepIndex / (steps.length - 1)) * 100}%`,
                     height: '4px',
-                    background: 'var(--success)',
+                    background: '#10b981',
                     zIndex: 0,
                     transition: 'width 0.5s ease-in-out'
                 }} />
@@ -58,7 +69,7 @@ const OrderTracker = ({ status, trackingId, courier, estimatedDelivery }) => {
                                 width: '30px',
                                 height: '30px',
                                 borderRadius: '50%',
-                                background: isCompleted ? 'var(--success)' : 'white',
+                                background: isCompleted ? '#10b981' : 'white',
                                 border: isCompleted ? 'none' : '4px solid #e0e0e0',
                                 boxShadow: '0 0 0 4px white',
                                 display: 'flex',
@@ -71,7 +82,7 @@ const OrderTracker = ({ status, trackingId, courier, estimatedDelivery }) => {
                             }}>
                                 {isCompleted && '✓'}
                             </div>
-                            <span style={{ fontSize: '12px', textAlign: 'center', color: isCompleted ? 'black' : '#aaa', fontWeight: isCompleted ? '600' : 'normal' }}>
+                            <span style={{ fontSize: '12px', textAlign: 'center', color: isCompleted ? '#10b981' : '#aaa', fontWeight: isCompleted ? '600' : 'normal' }}>
                                 {step}
                             </span>
                         </div>

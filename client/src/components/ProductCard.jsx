@@ -13,7 +13,8 @@ const ProductCard = ({ product }) => {
         e.preventDefault();
         if (!user) return showToast('Login to add to wishlist');
 
-        fetch('http://localhost:5000/api/wishlist', {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        fetch(`${apiUrl}/api/wishlist`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: user.id, product_id: product.id })

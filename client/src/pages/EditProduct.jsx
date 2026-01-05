@@ -18,7 +18,8 @@ const EditProduct = () => {
 
     useEffect(() => {
         // Fetch product details
-        fetch(`http://localhost:5000/api/products/${id}`)
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        fetch(`${apiUrl}/api/products/${id}`)
             .then(res => res.json())
             .then(data => {
                 if (data.message === 'success') {
@@ -41,7 +42,8 @@ const EditProduct = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch(`http://localhost:5000/api/products/${id}`, {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            const res = await fetch(`${apiUrl}/api/products/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

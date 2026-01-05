@@ -32,7 +32,8 @@ const ReviewSection = ({ productId }) => {
     const [loading, setLoading] = useState(true);
 
     const fetchReviews = () => {
-        fetch(`http://localhost:5000/api/reviews/${productId}`)
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        fetch(`${apiUrl}/api/reviews/${productId}`)
             .then(res => res.json())
             .then(data => {
                 if (data.message === 'success') setReviews(data.data);
@@ -47,7 +48,8 @@ const ReviewSection = ({ productId }) => {
     const submitReview = () => {
         if (!user) return showToast('Please login to review', 'error');
 
-        fetch('http://localhost:5000/api/reviews', {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        fetch(`${apiUrl}/api/reviews`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: user.id, product_id: productId, rating: newRating, comment })
