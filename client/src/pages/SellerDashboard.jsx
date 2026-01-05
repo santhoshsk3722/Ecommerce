@@ -1,0 +1,131 @@
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+
+const SellerDashboard = () => {
+    const { user } = useAuth();
+    const { showToast } = useToast();
+    const [products, setProducts] = useState([]);
+    const [formData, setFormData] = useState({ title: '', price: '', category: '', image: '', description: '' });
+
+    useEffect(() => {
+        if (user && user.role === 'seller') {
+            fetch(`http://localhost:5000/api/products/seller/${user.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.message === 'success') setProducts(data.data);
+                });
+        }
+    }, [user]);
+
+    const handleDelete = (id) => {
+        if (!confirm('Are you sure you want to delete this product?')) return;
+        fetch(`http://localhost:5000/api/products/${id}`, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message === 'deleted') {
+                    setProducts(products.filter(p => p.id !== id));
+                    showToast('Product deleted', 'success');
+                }
+            });
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        fetch('http://localhost:5000/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...formData, seller_id: user.id })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message === 'success') {
+                    showToast('Product added successfully!');
+                    setFormData({ title: '', price: '', category: '', image: '', description: '' });
+                    // Refresh
+                    fetch(`http://localhost:5000/api/products/seller/${user.id}`)
+                        .then(res => res.json())
+                        .then(data => setProducts(data.data));
+                } else {
+                    showToast(data.error || 'Failed to add product', 'error');
+                }
+            });
+    };
+
+    if (!user || user.role !== 'seller') return <div className="container">Access Denied</div>;
+
+    return (
+        <div style={{ padding: '20px' }}>
+            <h2>Seller Dashboard</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '40px', marginTop: '20px' }}>
+
+                {/* Add Product Form */}
+                <div style={{ background: 'white', padding: '20px', borderRadius: '8px', border: '1px solid #e0e0e0', height: 'fit-content' }}>
+                    <h3 style={{ marginBottom: '15px' }}>Add New Product</h3>
+                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        <input
+                            placeholder="Title"
+                            value={formData.title}
+                            onChange={e => setFormData({ ...formData, title: e.target.value })}
+                            required
+                            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                        />
+                        <input
+                            type="number"
+                            placeholder="Price"
+                            step="0.01"
+                            value={formData.price}
+                            onChange={e => setFormData({ ...formData, price: e.target.value })}
+                            required
+                            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                        />
+                        <input
+                            placeholder="Category"
+                            value={formData.category}
+                            onChange={e => setFormData({ ...formData, category: e.target.value })}
+                            required
+                            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                        />
+                        <input
+                            placeholder="Image URL"
+                            value={formData.image}
+                            onChange={e => setFormData({ ...formData, image: e.target.value })}
+                            required
+                            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                        />
+                        <textarea
+                            placeholder="Description"
+                            value={formData.description}
+                            onChange={e => setFormData({ ...formData, description: e.target.value })}
+                            required
+                            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px', minHeight: '100px' }}
+                        />
+                        <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>List Product</button>
+                    </form>
+                </div>
+
+                {/* Product List */}
+                <div>
+                    <h3 style={{ marginBottom: '15px' }}>My Products</h3>
+                    <div style={{ display: 'grid', gap: '15px' }}>
+                        {products.map(p => (
+                            <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '15px', background: 'white', border: '1px solid #e0e0e0', borderRadius: '8px', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                                    <img src={p.image} alt={p.title} style={{ width: '50px', height: '50px', objectFit: 'contain' }} />
+                                    <div>
+                                        <div style={{ fontWeight: 'bold' }}>{p.title}</div>
+                                        <div style={{ color: '#878787' }}>${p.price.toFixed(2)}</div>
+                                    </div>
+                                </div>
+                                <button onClick={() => handleDelete(p.id)} style={{ padding: '5px 10px', background: '#ff6161', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Delete</button>
+                            </div>
+                        ))}
+                        {products.length === 0 && <div style={{ color: '#878787' }}>No products listed yet.</div>}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default SellerDashboard;
