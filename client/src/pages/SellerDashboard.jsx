@@ -111,6 +111,14 @@ const SellerDashboard = () => {
                             required
                             style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px', minHeight: '100px' }}
                         />
+                        <input
+                            type="number"
+                            placeholder="Stock Quantity"
+                            value={formData.stock || ''}
+                            onChange={e => setFormData({ ...formData, stock: e.target.value })}
+                            required
+                            style={{ padding: '8px', border: '1px solid #ccc', borderRadius: '4px' }}
+                        />
                         <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>List Product</button>
                     </form>
                 </div>
@@ -126,6 +134,10 @@ const SellerDashboard = () => {
                                     <div>
                                         <div style={{ fontWeight: 'bold' }}>{p.title}</div>
                                         <div style={{ color: '#878787' }}>${p.price.toFixed(2)}</div>
+                                        <div style={{ fontSize: '12px', color: (p.stock && p.stock < 5) ? 'red' : 'green', fontWeight: '600' }}>
+                                            {(p.stock !== undefined) ? `Stock: ${p.stock}` : 'Stock: 10+'}
+                                            {(p.stock && p.stock < 5) && " (Low Stock!)"}
+                                        </div>
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', gap: '10px' }}>

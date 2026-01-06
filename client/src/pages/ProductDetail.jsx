@@ -111,25 +111,46 @@ const ProductDetail = () => {
                             {product.description}
                         </p>
 
-                        <div style={{ display: 'flex', gap: '20px' }}>
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => addToCart(product)}
-                                className="btn btn-secondary"
-                                style={{ flex: 1, padding: '20px', fontSize: '18px' }}
-                            >
-                                Add to Cart
-                            </motion.button>
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => { addToCart(product); navigate('/cart'); }}
-                                className="btn btn-primary"
-                                style={{ flex: 1, padding: '20px', fontSize: '18px' }}
-                            >
-                                Buy Now
-                            </motion.button>
+                        <div style={{ display: 'flex', gap: '20px', flexDirection: 'column' }}>
+                            {product.stock !== undefined && product.stock <= 0 ? (
+                                <div style={{
+                                    padding: '15px',
+                                    background: '#ffe2e2',
+                                    color: '#c53030',
+                                    borderRadius: '8px',
+                                    textAlign: 'center',
+                                    fontWeight: 'bold',
+                                    border: '1px solid #fab1b1'
+                                }}>
+                                    🚫 Out of Stock
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', gap: '20px' }}>
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => addToCart(product)}
+                                        className="btn btn-secondary"
+                                        style={{ flex: 1, padding: '20px', fontSize: '18px' }}
+                                    >
+                                        Add to Cart
+                                    </motion.button>
+                                    <motion.button
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => { addToCart(product); navigate('/cart'); }}
+                                        className="btn btn-primary"
+                                        style={{ flex: 1, padding: '20px', fontSize: '18px' }}
+                                    >
+                                        Buy Now
+                                    </motion.button>
+                                </div>
+                            )}
+                            {product.stock !== undefined && product.stock > 0 && product.stock < 10 && (
+                                <div style={{ color: '#c53030', fontSize: '14px', fontWeight: '600', textAlign: 'center' }}>
+                                    🔥 Hurry! Only {product.stock} left in stock.
+                                </div>
+                            )}
                         </div>
 
                         {/* Trust Badges */}

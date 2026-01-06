@@ -133,11 +133,12 @@ app.post('/api/signup', (req, res) => {
 
 // Add Product (Seller only - simplified check, ideally verified by token)
 app.post('/api/products', (req, res) => {
-    const { title, price, description, category, image, seller_id } = req.body;
+    const { title, price, description, category, image, seller_id, stock } = req.body;
     const rating = 0; // New products start with 0 rating
-    const sql = "INSERT INTO products (title, price, description, category, image, rating, seller_id) VALUES (?,?,?,?,?,?,?)";
+    const stockValue = stock !== undefined ? stock : 10; // Default stock
+    const sql = "INSERT INTO products (title, price, description, category, image, rating, seller_id, stock) VALUES (?,?,?,?,?,?,?,?)";
 
-    db.run(sql, [title, price, description, category, image, rating, seller_id], function (err) {
+    db.run(sql, [title, price, description, category, image, rating, seller_id, stockValue], function (err) {
         if (err) {
             res.status(400).json({ "error": err.message });
             return;
@@ -148,10 +149,10 @@ app.post('/api/products', (req, res) => {
 
 // Edit Product (Seller)
 app.put('/api/products/:id', (req, res) => {
-    const { title, price, description, category, image } = req.body;
-    const sql = "UPDATE products SET title = ?, price = ?, description = ?, category = ?, image = ? WHERE id = ?";
+    const { title, price, description, category, image, stock } = req.body;
+    const sql = "UPDATE products SET title = ?, price = ?, description = ?, category = ?, image = ?, stock = ? WHERE id = ?";
 
-    db.run(sql, [title, price, description, category, image, req.params.id], function (err) {
+    db.run(sql, [title, price, description, category, image, stock, req.params.id], function (err) {
         if (err) {
             res.status(400).json({ "error": err.message });
             return;
