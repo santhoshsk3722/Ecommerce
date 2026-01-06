@@ -129,16 +129,16 @@ ul {
 }
 
 .btn-secondary {
-  background: white;
+  background: var(--surface);
   color: var(--text-main);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
 }
 
 .btn-secondary:hover {
-  background: #f8fafc;
+  background: var(--surface-hover);
   border-color: var(--text-secondary);
-  color: black;
+  color: var(--text-main);
 }
 
 /* Glass Panel -> Solid Panel for Contrast */
@@ -233,13 +233,13 @@ select:focus {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--border);
   border-radius: 5px;
   border: 2px solid var(--background);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--text-light);
 }
 
 /* Utilities */
@@ -342,7 +342,7 @@ select:focus {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: white;
+  background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
 

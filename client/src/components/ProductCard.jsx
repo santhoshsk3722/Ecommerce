@@ -47,7 +47,7 @@ const ProductCard = ({ product }) => {
                     onClick={toggleWishlist}
                     style={{
                         position: 'absolute', top: '15px', right: '15px',
-                        zIndex: 10, background: 'white', borderRadius: '50%',
+                        zIndex: 10, background: 'var(--surface)', borderRadius: '50%',
                         width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
                         boxShadow: 'var(--shadow-sm)', cursor: 'pointer',
                         color: isWishlisted ? 'var(--error)' : 'var(--text-light)',
