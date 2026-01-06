@@ -191,7 +191,7 @@ const Checkout = () => {
                             style={{
                                 width: '100%',
                                 padding: '15px',
-                                border: '1px solid #e2e8f0',
+                                border: '1px solid var(--border)',
                                 borderRadius: '8px',
                                 resize: 'vertical',
                                 fontSize: '14px',
@@ -200,7 +200,7 @@ const Checkout = () => {
                             }}
                         />
                         {errors.address && <div style={{ color: '#dc2626', fontSize: '12px', marginTop: '5px' }}>{errors.address}</div>}
-                        <p style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
+                        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '10px' }}>
                             * We pre-filled this from your profile if available. You can change it for this order.
                         </p>
                     </div>
@@ -209,7 +209,7 @@ const Checkout = () => {
                     <div style={{ marginTop: '30px' }}>
                         <h3 style={{ fontSize: '18px', marginBottom: '20px', color: 'var(--text-main)' }}>2. Payment Method</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '18px', border: paymentMethod === 'Card' ? '2px solid var(--primary)' : '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', background: paymentMethod === 'Card' ? 'var(--surface-hover)' : 'var(--surface)', transition: 'all 0.2s' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '18px', border: paymentMethod === 'Card' ? '2px solid var(--primary)' : '1px solid var(--border)', borderRadius: '12px', cursor: 'pointer', background: paymentMethod === 'Card' ? 'var(--surface-hover)' : 'var(--surface)', transition: 'all 0.2s' }}>
                                 <input
                                     type="radio"
                                     name="payment"
@@ -259,25 +259,25 @@ const Checkout = () => {
 
                 {/* Right Column: Order Summary */}
                 <div>
-                    <div style={{ position: 'sticky', top: '100px', background: 'var(--surface-hover)', padding: '25px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ position: 'sticky', top: '100px', background: 'var(--surface-hover)', padding: '25px', borderRadius: '16px', border: '1px solid var(--border)' }}>
                         <h3 style={{ fontSize: '18px', marginBottom: '20px' }}>Order Summary</h3>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '14px', color: '#64748b' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '14px', color: 'var(--text-secondary)' }}>
                             <span>Price ({cart.length} items)</span>
                             <span>${cartTotal.toFixed(2)}</span>
                         </div>
                         {discount > 0 && (
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', color: '#10b981', fontWeight: '500' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', color: 'var(--success)', fontWeight: '500' }}>
                                 <span>Discount Coupon</span>
                                 <span>-${discount.toFixed(2)}</span>
                             </div>
                         )}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '14px', color: '#64748b' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '14px', color: 'var(--text-secondary)' }}>
                             <span>Delivery Charges</span>
-                            <span style={{ color: '#10b981' }}>FREE</span>
+                            <span style={{ color: 'var(--success)' }}>FREE</span>
                         </div>
 
-                        <div style={{ borderTop: '2px dashed #cbd5e1', margin: '20px 0' }}></div>
+                        <div style={{ borderTop: '2px dashed var(--border)', margin: '20px 0' }}></div>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '25px', fontWeight: '800', fontSize: '20px', color: 'var(--text-main)' }}>
                             <span>Total Payable</span>

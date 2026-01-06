@@ -56,20 +56,20 @@ const NavBar = () => {
         >
             <div className="container navbar-container">
                 <Link to="/" className="navbar-brand">
-                    <span style={{ color: 'var(--primary)' }}>Tech</span>
+                    <span style={{ color: 'var(--text-main)' }}>Tech</span>
                     <span style={{ color: 'var(--accent)' }}>Orbit</span>
                 </Link>
 
                 <div className="search-form-container">
                     <form onSubmit={onSearchSubmit} className="search-form">
-                        <span style={{ color: '#2874f0', fontSize: '18px', marginRight: '10px' }}>🔍</span>
+                        <span style={{ color: 'var(--text-secondary)', fontSize: '18px', marginRight: '10px' }}>🔍</span>
                         <input
                             type="text"
                             placeholder="Data-Driven Search for Products, Brands and More"
                             className='search-input'
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            style={{ border: 'none', outline: 'none', flex: 1, background: 'transparent', fontSize: '14px', color: '#333', minWidth: 0 }}
+                            style={{ border: 'none', outline: 'none', flex: 1, background: 'transparent', fontSize: '14px', color: 'inherit', minWidth: 0 }}
                         />
                         {/* Voice Search Button */}
                         <button

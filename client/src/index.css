@@ -35,6 +35,7 @@
 
   --success: #10b981;
   --error: #ef4444;
+  --primary-gradient: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
 }
 
 [data-theme='dark'] {
@@ -50,14 +51,15 @@
   --surface: #1e293b;
   /* Slate 800 */
   --surface-hover: #334155;
-  --surface-glass: rgba(30, 41, 59, 0.95);
-  --text-main: #f8fafc;
+  --surface-glass: rgba(15, 23, 42, 0.95);
+  --text-main: #f1f5f9;
   /* Slate 50 */
   --text-secondary: #cbd5e1;
   /* Slate 300 */
   --text-light: #94a3b8;
   --border: #334155;
   /* Slate 700 */
+  --primary-gradient: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
@@ -308,11 +310,12 @@ select:focus {
 .search-form {
   display: flex;
   align-items: center;
-  background: #f0f5ff;
+  background: var(--surface-hover);
   border-radius: 50px;
   padding: 5px 15px;
-  border: 1px solid white;
+  border: 1px solid var(--border);
   box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+  color: var(--text-main);
 }
 
 .navbar-actions {

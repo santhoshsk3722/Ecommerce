@@ -45,8 +45,8 @@ const AdminDashboard = () => {
     };
 
     return (
-        <div style={{ padding: '20px', background: '#f8fafc', minHeight: '100vh' }}>
-            <h2 style={{ marginBottom: '20px', fontSize: '24px', fontWeight: '800', color: '#0f172a' }}>Analytics Dashboard</h2>
+        <div style={{ padding: '20px', background: 'var(--background)', minHeight: '100vh' }}>
+            <h2 style={{ marginBottom: '20px', fontSize: '24px', fontWeight: '800', color: 'var(--text-main)' }}>Analytics Dashboard</h2>
 
             {/* Top Stats Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '30px' }}>
@@ -96,7 +96,7 @@ const AdminDashboard = () => {
 
                 {/* Order Status Pie Chart */}
                 <div className="card" style={{ padding: '20px', height: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <h3 style={{ fontSize: '16px', marginBottom: '20px', color: '#64748b', alignSelf: 'flex-start' }}>Order Status</h3>
+                    <h3 style={{ fontSize: '16px', marginBottom: '20px', color: 'var(--text-secondary)', alignSelf: 'flex-start' }}>Order Status</h3>
                     <div style={{ position: 'relative', width: '180px', height: '180px' }}>
                         <svg viewBox="-1 -1 2 2" style={{ transform: 'rotate(-90deg)' }}>
                             {orderStatusData.map((slice, i) => {
@@ -110,13 +110,13 @@ const AdminDashboard = () => {
                                     `L 0 0`,
                                 ].join(' ');
                                 return (
-                                    <path key={i} d={pathData} fill={slice.color} stroke="white" strokeWidth="0.05" />
+                                    <path key={i} d={pathData} fill={slice.color} stroke="var(--surface)" strokeWidth="0.05" />
                                 );
                             })}
                         </svg>
-                        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'white', borderRadius: '50%', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'var(--surface)', borderRadius: '50%', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                             <span style={{ fontSize: '24px', fontWeight: 'bold' }}>{stats.orders}</span>
-                            <span style={{ fontSize: '10px', color: '#64748b' }}>Total</span>
+                            <span style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Total</span>
                         </div>
                     </div>
                     <div style={{ display: 'flex', gap: '15px', marginTop: '20px', fontSize: '12px' }}>
@@ -132,12 +132,12 @@ const AdminDashboard = () => {
 
             {/* Users Table */}
             <div className="card" style={{ overflow: 'hidden' }}>
-                <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h3 style={{ margin: 0 }}>Recent Users</h3>
                     <button className="btn btn-secondary" style={{ fontSize: '12px', padding: '8px 12px' }}>Export Data</button>
                 </div>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                    <thead style={{ background: '#f1f5f9', color: '#475569' }}>
+                    <thead style={{ background: 'var(--surface-hover)', color: 'var(--text-secondary)' }}>
                         <tr>
                             <th style={{ padding: '15px', textAlign: 'left' }}>User / Email</th>
                             <th style={{ padding: '15px', textAlign: 'left' }}>Role</th>
@@ -147,10 +147,10 @@ const AdminDashboard = () => {
                     </thead>
                     <tbody>
                         {usersList.slice(0, 5).map(u => (
-                            <tr key={u.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
                                 <td style={{ padding: '15px' }}>
                                     <div style={{ fontWeight: '600' }}>{u.name}</div>
-                                    <div style={{ fontSize: '12px', color: '#94a3b8' }}>{u.email}</div>
+                                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{u.email}</div>
                                 </td>
                                 <td style={{ padding: '15px' }}>
                                     <span style={{
@@ -158,14 +158,14 @@ const AdminDashboard = () => {
                                         borderRadius: '20px',
                                         fontSize: '11px',
                                         fontWeight: '600',
-                                        background: u.role === 'admin' ? '#e0f2fe' : u.role === 'seller' ? '#fef3c7' : '#f1f5f9',
-                                        color: u.role === 'admin' ? '#0369a1' : u.role === 'seller' ? '#d97706' : '#64748b'
+                                        background: u.role === 'admin' ? 'var(--surface-active)' : 'var(--surface-hover)', // Simplified for consistency
+                                        color: u.role === 'admin' ? 'var(--accent)' : 'var(--text-secondary)'
                                     }}>
                                         {u.role.toUpperCase()}
                                     </span>
                                 </td>
                                 <td style={{ padding: '15px' }}>
-                                    <span style={{ color: '#10b981', fontWeight: '600', fontSize: '12px' }}>● Active</span>
+                                    <span style={{ color: 'var(--success)', fontWeight: '600', fontSize: '12px' }}>● Active</span>
                                 </td>
                                 <td style={{ padding: '15px' }}>
                                     <div style={{ display: 'flex', gap: '10px' }}>
@@ -212,9 +212,9 @@ const StatsCard = ({ title, value, change, color, icon }) => (
             {icon}
         </div>
         <div>
-            <div style={{ fontSize: '14px', color: '#64748b' }}>{title}</div>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: '#0f172a' }}>{value}</div>
-            <div style={{ fontSize: '12px', color: '#10b981', fontWeight: '600' }}>{change} from last month</div>
+            <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>{title}</div>
+            <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-main)' }}>{value}</div>
+            <div style={{ fontSize: '12px', color: 'var(--success)', fontWeight: '600' }}>{change} from last month</div>
         </div>
     </div>
 );

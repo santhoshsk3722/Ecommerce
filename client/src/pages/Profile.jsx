@@ -131,8 +131,8 @@ const Profile = () => {
                         <div style={{ width: '100%', height: '200px', display: 'flex', alignItems: 'flex-end', position: 'relative' }}>
                             <svg viewBox="0 0 500 150" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
                                 {/* Axes */}
-                                <line x1="0" y1="150" x2="500" y2="150" stroke="#eee" />
-                                <line x1="0" y1="0" x2="0" y2="150" stroke="#eee" />
+                                <line x1="0" y1="150" x2="500" y2="150" stroke="var(--border)" />
+                                <line x1="0" y1="0" x2="0" y2="150" stroke="var(--border)" />
 
                                 {/* Area */}
                                 <polygon points={`0,150 ${chartPoints} 500,150`} fill="var(--accent)" fillOpacity="0.1" />
@@ -148,11 +148,11 @@ const Profile = () => {
 
                                 {/* Points */}
                                 {spendingData.map((val, i) => (
-                                    <circle key={i} cx={i * 100} cy={150 - (val / maxSpend * 120)} r="4" fill="white" stroke="var(--accent)" strokeWidth="2" />
+                                    <circle key={i} cx={i * 100} cy={150 - (val / maxSpend * 120)} r="4" fill="var(--surface)" stroke="var(--accent)" strokeWidth="2" />
                                 ))}
                             </svg>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', color: '#94a3b8', fontSize: '12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', color: 'var(--text-light)', fontSize: '12px' }}>
                             <span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
                         </div>
                     </div>
