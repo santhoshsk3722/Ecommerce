@@ -8,6 +8,14 @@ const db = new sqlite3.Database(dbPath, (err) => {
         console.error('Error opening database ' + dbPath + ': ' + err.message);
     } else {
         console.log('Connected to the SQLite database at: ' + dbPath);
+
+        // Auto-migration for Inventory Tracking
+        db.run("ALTER TABLE products ADD COLUMN stock INTEGER DEFAULT 10", (err) => {
+            if (!err) {
+                console.log("Migration: Added 'stock' column to products table.");
+            }
+            // Ignore error if column already exists
+        });
     }
 });
 
