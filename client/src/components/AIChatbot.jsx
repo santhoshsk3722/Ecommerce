@@ -180,7 +180,7 @@ const AIChatbot = () => {
                         }}
                     >
                         {/* Header */}
-                        <div style={{ background: 'var(--primary-gradient)', padding: '15px 20px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div style={{ background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)', padding: '15px 20px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'white', padding: '2px', overflow: 'hidden' }}>
                                     <img src={aiAvatar} alt="AI" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />

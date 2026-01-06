@@ -15,6 +15,7 @@ import { ToastProvider } from './context/ToastContext';
 import MyOrders from './pages/MyOrders';
 import Wishlist from './pages/Wishlist';
 import SellerDashboard from './pages/SellerDashboard';
+import AddProduct from './pages/AddProduct';
 import EditProduct from './pages/EditProduct';
 import SellerOrders from './pages/SellerOrders';
 import Checkout from './pages/Checkout';
@@ -23,6 +24,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import Profile from './pages/Profile';
 import VisualSearch from './pages/VisualSearch';
 
+import ScrollToTop from './components/ScrollToTop';
+
 function App() {
   return (
     <ToastProvider>
@@ -30,6 +33,7 @@ function App() {
         <CartProvider>
           <LoyaltyProvider>
             <Router>
+              <ScrollToTop />
               <NavBar />
               <div className="container" style={{ minHeight: '80vh' }}>
                 <Routes>
@@ -43,6 +47,7 @@ function App() {
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/wishlist" element={<Wishlist />} />
                   <Route path="/seller" element={<SellerDashboard />} />
+                  <Route path="/seller/add-product" element={<AddProduct />} />
                   <Route path="/seller/product/edit/:id" element={<EditProduct />} />
                   <Route path="/seller/orders" element={<SellerOrders />} />
                   <Route path="/admin" element={<AdminDashboard />} />

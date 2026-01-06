@@ -7,10 +7,13 @@ const Profile = () => {
     const { user } = useAuth();
     const { points, badges, history } = useLoyalty();
 
+    const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({
         name: '', address: '', city: '', zip: '', country: ''
     });
     const [message, setMessage] = useState('');
+    const [spendingData, setSpendingData] = useState([]);
+    const [maxSpend, setMaxSpend] = useState(1);
 
     useEffect(() => {
         if (user) {
@@ -21,8 +24,46 @@ const Profile = () => {
                 zip: user.zip || '',
                 country: user.country || ''
             });
+            fetchSpendingData(user.id);
         }
     }, [user]);
+
+    const fetchSpendingData = async (userId) => {
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            const res = await fetch(`${apiUrl}/api/orders/user/${userId}`);
+            const data = await res.json();
+
+            if (data.message === 'success') {
+                const orders = data.data;
+                // Aggregate by month (simple last 6 months logic)
+                const monthlySpend = new Array(6).fill(0);
+                const months = [];
+                const today = new Date();
+
+                for (let i = 5; i >= 0; i--) {
+                    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                    months.push(d.toLocaleString('default', { month: 'short' }));
+                }
+
+                orders.forEach(order => {
+                    const d = new Date(order.created_at);
+                    const diffMonths = (today.getFullYear() - d.getFullYear()) * 12 + (today.getMonth() - d.getMonth());
+                    if (diffMonths >= 0 && diffMonths < 6) {
+                        monthlySpend[5 - diffMonths] += order.total;
+                    }
+                });
+
+                setSpendingData(monthlySpend);
+                const max = Math.max(...monthlySpend, 1);
+                setMaxSpend(max);
+            }
+        } catch (err) {
+            console.error("Failed to fetch spending data", err);
+            // Fallback to mock if failed
+            setSpendingData([0, 0, 0, 0, 0, 0]);
+        }
+    };
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -40,6 +81,7 @@ const Profile = () => {
             const data = await res.json();
             if (data.message === 'updated') {
                 setMessage('Profile updated successfully!');
+                setIsEditing(false);
             } else {
                 setMessage('Error: ' + data.error);
             }
@@ -50,10 +92,6 @@ const Profile = () => {
 
     if (!user) return <div className="container" style={{ padding: '40px' }}>Please login.</div>;
 
-    // --- Analytics Chart Logic ---
-    // Mock spending data for last 6 months
-    const spendingData = [150, 450, 300, 600, 200, 800];
-    const maxSpend = Math.max(...spendingData);
     const chartPoints = spendingData.map((val, i) => `${i * 100},${150 - (val / maxSpend * 120)}`).join(' ');
 
     return (
@@ -86,39 +124,70 @@ const Profile = () => {
 
                     {/* Profile Form */}
                     <div className="card" style={{ padding: '30px' }}>
-                        <h2 style={{ marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px', fontSize: '20px' }}>Edit Profile</h2>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+                            <h2 style={{ fontSize: '20px', margin: 0, color: 'var(--text-main)' }}>Profile Details</h2>
+                            {!isEditing ? (
+                                <button onClick={() => setIsEditing(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }} title="Edit Profile">✏️</button>
+                            ) : (
+                                <button onClick={() => setIsEditing(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', color: 'var(--text-secondary)' }} title="Cancel">✕</button>
+                            )}
+                        </div>
+
                         {message && <div style={{ padding: '10px', background: message.includes('Error') ? '#ffebee' : '#e8f5e9', color: message.includes('Error') ? '#c62828' : '#2e7d32', marginBottom: '20px', borderRadius: '4px', fontSize: '14px' }}>{message}</div>}
 
                         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '15px' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px' }}>Name</label>
-                                <input name="name" value={formData.name} onChange={handleChange} required />
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px', color: 'var(--text-secondary)' }}>Name</label>
+                                {isEditing ? (
+                                    <input name="name" value={formData.name} onChange={handleChange} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)' }} />
+                                ) : (
+                                    <div style={{ padding: '10px', fontWeight: '600', color: 'var(--text-main)' }}>{formData.name}</div>
+                                )}
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px' }}>Email</label>
-                                <input value={user.email} disabled style={{ background: 'var(--surface-hover)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }} />
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px', color: 'var(--text-secondary)' }}>Email</label>
+                                <div style={{ padding: '10px', background: 'var(--surface-hover)', borderRadius: '8px', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}>{user.email}</div>
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px' }}>Address</label>
-                                <textarea name="address" value={formData.address} onChange={handleChange} rows="3" />
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px', color: 'var(--text-secondary)' }}>Address</label>
+                                {isEditing ? (
+                                    <textarea name="address" value={formData.address} onChange={handleChange} rows="3" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)' }} />
+                                ) : (
+                                    <div style={{ padding: '10px', color: 'var(--text-main)' }}>{formData.address || '-'}</div>
+                                )}
                             </div>
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px' }}>City</label>
-                                    <input name="city" value={formData.city} onChange={handleChange} />
+                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px', color: 'var(--text-secondary)' }}>City</label>
+                                    {isEditing ? (
+                                        <input name="city" value={formData.city} onChange={handleChange} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)' }} />
+                                    ) : (
+                                        <div style={{ padding: '10px', color: 'var(--text-main)' }}>{formData.city || '-'}</div>
+                                    )}
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px' }}>ZIP</label>
-                                    <input name="zip" value={formData.zip} onChange={handleChange} />
+                                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px', color: 'var(--text-secondary)' }}>ZIP</label>
+                                    {isEditing ? (
+                                        <input name="zip" value={formData.zip} onChange={handleChange} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)' }} />
+                                    ) : (
+                                        <div style={{ padding: '10px', color: 'var(--text-main)' }}>{formData.zip || '-'}</div>
+                                    )}
                                 </div>
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px' }}>Country</label>
-                                <input name="country" value={formData.country} onChange={handleChange} />
+                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px', color: 'var(--text-secondary)' }}>Country</label>
+                                {isEditing ? (
+                                    <input name="country" value={formData.country} onChange={handleChange} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)' }} />
+                                ) : (
+                                    <div style={{ padding: '10px', color: 'var(--text-main)' }}>{formData.country || '-'}</div>
+                                )}
                             </div>
-                            <div style={{ marginTop: '10px', textAlign: 'right' }}>
-                                <button type="submit" className="btn btn-primary">Save Changes</button>
-                            </div>
+
+                            {isEditing && (
+                                <div style={{ marginTop: '10px', textAlign: 'right' }}>
+                                    <button type="submit" className="btn btn-primary">Save Changes</button>
+                                </div>
+                            )}
                         </form>
                     </div>
                 </div>
@@ -127,7 +196,7 @@ const Profile = () => {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
                     {/* Spending Chart */}
                     <div className="card" style={{ padding: '30px' }}>
-                        <h3 style={{ fontSize: '18px', marginBottom: '20px' }}>Spending Insights</h3>
+                        <h3 style={{ fontSize: '18px', marginBottom: '20px', color: 'var(--text-main)' }}>Spending Insights (Last 6 Months)</h3>
                         <div style={{ width: '100%', height: '200px', display: 'flex', alignItems: 'flex-end', position: 'relative' }}>
                             <svg viewBox="0 0 500 150" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
                                 {/* Axes */}
@@ -153,21 +222,21 @@ const Profile = () => {
                             </svg>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px', color: 'var(--text-light)', fontSize: '12px' }}>
-                            <span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+                            {['Mon-5', 'Mon-4', 'Mon-3', 'Mon-2', 'Mon-1', 'Current'].map((m, i) => <span key={i}>{m}</span>)}
                         </div>
                     </div>
 
                     {/* Points History */}
                     <div className="card" style={{ padding: '30px' }}>
-                        <h3 style={{ fontSize: '18px', marginBottom: '20px' }}>Points History</h3>
+                        <h3 style={{ fontSize: '18px', marginBottom: '20px', color: 'var(--text-main)' }}>Points History</h3>
                         <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
                             {history.length === 0 ? <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>No history yet.</p> : (
                                 <table style={{ width: '100%', fontSize: '14px', borderCollapse: 'collapse' }}>
                                     <tbody>
                                         {history.map((h, i) => (
-                                            <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
+                                            <tr key={i} style={{ borderBottom: '1px solid var(--border)' }}>
                                                 <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>{new Date(h.date).toLocaleDateString()}</td>
-                                                <td style={{ padding: '10px 0' }}>{h.reason}</td>
+                                                <td style={{ padding: '10px 0', color: 'var(--text-main)' }}>{h.reason}</td>
                                                 <td style={{ padding: '10px 0', textAlign: 'right', fontWeight: 'bold', color: h.amount > 0 ? 'var(--success)' : '#ef4444' }}>
                                                     {h.amount > 0 ? '+' : ''}{h.amount}
                                                 </td>
