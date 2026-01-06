@@ -115,12 +115,12 @@ const ProductDetail = () => {
                             {product.stock !== undefined && product.stock <= 0 ? (
                                 <div style={{
                                     padding: '15px',
-                                    background: '#ffe2e2',
-                                    color: '#c53030',
+                                    background: 'rgba(239, 68, 68, 0.1)',
+                                    color: 'var(--error)',
                                     borderRadius: '8px',
                                     textAlign: 'center',
                                     fontWeight: 'bold',
-                                    border: '1px solid #fab1b1'
+                                    border: '1px solid rgba(239, 68, 68, 0.3)'
                                 }}>
                                     🚫 Out of Stock
                                 </div>
@@ -147,7 +147,7 @@ const ProductDetail = () => {
                                 </div>
                             )}
                             {product.stock !== undefined && product.stock > 0 && product.stock < 10 && (
-                                <div style={{ color: '#c53030', fontSize: '14px', fontWeight: '600', textAlign: 'center' }}>
+                                <div style={{ color: 'var(--error)', fontSize: '14px', fontWeight: '600', textAlign: 'center' }}>
                                     🔥 Hurry! Only {product.stock} left in stock.
                                 </div>
                             )}
@@ -172,7 +172,7 @@ const ProductDetail = () => {
 
                 {/* Related Products Section */}
                 {relatedProducts.length > 0 && (
-                    <div style={{ marginTop: '80px', borderTop: '1px solid #eee', paddingTop: '40px' }}>
+                    <div style={{ marginTop: '80px', borderTop: '1px solid var(--border)', paddingTop: '40px' }}>
                         <h2 style={{ marginBottom: '30px' }}>You might also like</h2>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '30px' }}>
                             {relatedProducts.map(p => (

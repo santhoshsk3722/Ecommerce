@@ -63,19 +63,19 @@ const SellerOrders = () => {
     if (!user || user.role !== 'seller') return <div className="container">Access Denied</div>;
 
     return (
-        <div className="container">
-            <h2 style={{ marginBottom: '30px' }}>Manage Orders</h2>
+        <div className="container" style={{ paddingBottom: '50px' }}>
+            <h2 style={{ marginBottom: '30px', color: 'var(--text-main)' }}>Manage Orders</h2>
 
             {orders.length === 0 ? (
-                <div style={{ color: '#888' }}>No orders found needing your products.</div>
+                <div style={{ color: 'var(--text-secondary)' }}>No orders found needing your products.</div>
             ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {orders.map(order => (
-                        <div key={order.id} style={{ background: 'white', border: '1px solid #eee', borderRadius: '8px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+                        <div key={order.id} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', padding: '20px', boxShadow: 'var(--shadow-sm)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', borderBottom: '1px solid var(--border)', paddingBottom: '10px' }}>
                                 <div>
-                                    <strong>Order #{order.id}</strong>
-                                    <span style={{ marginLeft: '10px', color: '#888', fontSize: '14px' }}>{new Date(order.date).toLocaleDateString()}</span>
+                                    <strong style={{ color: 'var(--text-main)' }}>Order #{order.id}</strong>
+                                    <span style={{ marginLeft: '10px', color: 'var(--text-secondary)', fontSize: '14px' }}>{new Date(order.date).toLocaleDateString()}</span>
                                 </div>
                                 <div>
                                     <span style={{
@@ -83,8 +83,8 @@ const SellerOrders = () => {
                                         borderRadius: '20px',
                                         fontSize: '12px',
                                         fontWeight: 'bold',
-                                        background: order.status === 'Delivered' ? '#e6fffa' : order.status === 'Shipped' ? '#ebf8ff' : '#fff5f5',
-                                        color: order.status === 'Delivered' ? '#2c7a7b' : order.status === 'Shipped' ? '#2b6cb0' : '#c53030'
+                                        background: order.status === 'Delivered' ? 'rgba(56, 161, 105, 0.1)' : order.status === 'Shipped' ? 'rgba(49, 130, 206, 0.1)' : 'rgba(229, 62, 62, 0.1)',
+                                        color: order.status === 'Delivered' ? 'var(--success)' : order.status === 'Shipped' ? '#3182ce' : 'var(--error)'
                                     }}>
                                         {order.status}
                                     </span>
@@ -92,19 +92,19 @@ const SellerOrders = () => {
                             </div>
 
                             <div style={{ marginBottom: '15px' }}>
-                                <h4 style={{ fontSize: '14px', marginBottom: '10px', color: '#555' }}>Items to Ship:</h4>
+                                <h4 style={{ fontSize: '14px', marginBottom: '10px', color: 'var(--text-secondary)' }}>Items to Ship:</h4>
                                 {order.items.map(item => (
                                     <div key={item.product_id} style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '10px' }}>
-                                        <img src={item.image} alt={item.title} style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+                                        <img src={item.image} alt={item.title} style={{ width: '40px', height: '40px', objectFit: 'contain', background: 'white', borderRadius: '4px' }} />
                                         <div style={{ flex: 1 }}>
-                                            <div style={{ fontSize: '14px', fontWeight: '500' }}>{item.title}</div>
-                                            <div style={{ fontSize: '13px', color: '#888' }}>Qty: {item.quantity} | Price: ${item.price}</div>
+                                            <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-main)' }}>{item.title}</div>
+                                            <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Qty: {item.quantity} | Price: ${item.price}</div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', borderTop: '1px solid var(--border)', paddingTop: '15px' }}>
                                 {order.status === 'Processing' && (
                                     <button
                                         onClick={() => handleAddTracking(order.id)}
@@ -118,12 +118,12 @@ const SellerOrders = () => {
                                     <button
                                         onClick={() => handleUpdateStatus(order.id, 'Delivered')}
                                         className="btn btn-success"
-                                        style={{ fontSize: '13px', padding: '8px 15px', background: '#38a169', color: 'white', border: 'none', borderRadius: '4px' }}
+                                        style={{ fontSize: '13px', padding: '8px 15px', background: 'var(--success)', color: 'white', border: 'none', borderRadius: '4px' }}
                                     >
                                         Mark Delivered
                                     </button>
                                 )}
-                                <div style={{ fontSize: '13px', color: '#888', alignSelf: 'center' }}>
+                                <div style={{ fontSize: '13px', color: 'var(--text-secondary)', alignSelf: 'center' }}>
                                     {order.tracking_id && `Tracking: ${order.courier_name} - ${order.tracking_id}`}
                                 </div>
                             </div>

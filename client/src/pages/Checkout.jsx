@@ -153,9 +153,14 @@ const Checkout = () => {
 
     // Order Success View
     if (orderSuccess) {
+        // Scroll to top when success view is shown
+        useEffect(() => {
+            window.scrollTo(0, 0);
+        }, []);
+
         return (
-            <div style={{ maxWidth: '600px', margin: '40px auto', background: 'var(--surface)', padding: '50px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', textAlign: 'center' }}>
-                <div style={{ width: '80px', height: '80px', background: '#10b981', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', margin: '0 auto 20px' }}>✓</div>
+            <div style={{ maxWidth: '600px', margin: '40px auto', background: 'var(--surface)', padding: '50px', borderRadius: '16px', boxShadow: 'var(--shadow-lg)', textAlign: 'center' }}>
+                <div style={{ width: '80px', height: '80px', background: 'var(--success)', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', margin: '0 auto 20px' }}>✓</div>
                 <h2 style={{ fontSize: '28px', color: 'var(--text-main)', marginBottom: '10px' }}>Order Placed Successfully!</h2>
                 <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>Your order #{orderSuccess} has been confirmed. We will ship it shortly.</p>
                 <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
