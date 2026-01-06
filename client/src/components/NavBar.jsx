@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { motion } from 'framer-motion';
 
 const NavBar = () => {
     const { cartCount } = useCart();
     const { user, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
     const location = useLocation();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
@@ -16,8 +18,9 @@ const NavBar = () => {
     const [showNotifs, setShowNotifs] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-    const handleSearch = (e) => {
+    const onSearchSubmit = (e) => {
         e.preventDefault();
+        console.log("Searching for:", searchTerm);
         navigate(`/?search=${searchTerm}`);
     };
     useEffect(() => {
@@ -51,14 +54,14 @@ const NavBar = () => {
                 marginBottom: 'var(--spacing-lg)'
             }}
         >
-            <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '70px' }}>
-                <Link to="/" style={{ fontSize: '24px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div className="container navbar-container">
+                <Link to="/" className="navbar-brand">
                     <span style={{ color: 'var(--primary)' }}>Tech</span>
                     <span style={{ color: 'var(--accent)' }}>Orbit</span>
                 </Link>
 
-                <div style={{ flex: 1, margin: '0 20px', maxWidth: '600px', position: 'relative' }}>
-                    <form onSubmit={handleSearch} style={{ display: 'flex', alignItems: 'center', background: '#f0f5ff', borderRadius: '50px', padding: '5px 15px', border: '1px solid white', boxShadow: 'inset 0 2px 5px rgba(0,0,0,0.05)' }}>
+                <div className="search-form-container">
+                    <form onSubmit={onSearchSubmit} className="search-form">
                         <span style={{ color: '#2874f0', fontSize: '18px', marginRight: '10px' }}>🔍</span>
                         <input
                             type="text"
@@ -66,7 +69,7 @@ const NavBar = () => {
                             className='search-input'
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            style={{ border: 'none', outline: 'none', flex: 1, background: 'transparent', fontSize: '14px', color: '#333' }}
+                            style={{ border: 'none', outline: 'none', flex: 1, background: 'transparent', fontSize: '14px', color: '#333', minWidth: 0 }}
                         />
                         {/* Voice Search Button */}
                         <button
@@ -95,7 +98,7 @@ const NavBar = () => {
                     </form>
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', fontWeight: '600', fontSize: '14px' }}>
+                <div className="navbar-actions">
 
                     {/* Notification Bell */}
                     {user && (
@@ -167,7 +170,7 @@ const NavBar = () => {
                                     position: 'absolute',
                                     top: '120%',
                                     right: 0,
-                                    background: 'white',
+                                    background: 'var(--surface)',
                                     minWidth: '200px',
                                     borderRadius: '8px',
                                     boxShadow: 'var(--shadow-lg)',
@@ -186,7 +189,7 @@ const NavBar = () => {
                                         <Link to="/seller" onClick={() => setShowProfileMenu(false)} style={{ display: 'block', padding: '10px 20px', color: 'var(--warning)', textDecoration: 'none', fontWeight: 'bold' }} className="menu-item">Seller Dashboard</Link>
                                     )}
 
-                                    <div style={{ borderTop: '1px solid #eee', margin: '5px 0' }}></div>
+                                    <div style={{ borderTop: '1px solid var(--border)', margin: '5px 0' }}></div>
                                     <button
                                         onClick={() => {
                                             logout();
@@ -204,6 +207,15 @@ const NavBar = () => {
                     ) : (
                         <Link to="/login" className="btn btn-primary" style={{ padding: '8px 20px', fontSize: '14px' }}>Login</Link>
                     )}
+
+                    {/* Theme Toggle */}
+                    <button
+                        onClick={toggleTheme}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', padding: '5px', display: 'flex', alignItems: 'center' }}
+                        title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`}
+                    >
+                        {theme === 'dark' ? '☀️' : '🌙'}
+                    </button>
                 </div>
             </div>
         </motion.nav >

@@ -1,38 +1,5 @@
 :root {
-  /* High Contrast Professional Palette */
-  --primary: #0f172a;
-  /* Midnight Blue (Deep, almost black) */
-  --primary-light: #1e293b;
-  /* Slate 800 */
-
-  --accent: #2563eb;
-  /* Royal Blue (Vibrant, high contrast) */
-  --accent-hover: #1d4ed8;
-
-  --secondary: #fbbf24;
-  /* Warm Amber for subtle highlights */
-
-  --background: #f8fafc;
-  /* Soft Blue-Gray, very professional and clean */
-  --surface: #ffffff;
-  /* Pure White */
-  --surface-glass: rgba(255, 255, 255, 0.98);
-  /* Less translucent for better readability */
-
-  --text-main: #020617;
-  /* Slate 950 (High contrast text) */
-  --text-secondary: #475569;
-  /* Slate 600 */
-  --text-light: #94a3b8;
-
-  --border: #cbd5e1;
-  /* Slate 300 (Visible borders) */
-
-  /* Solid colors over gradients for "Decent" look */
-  --primary-gradient: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-  --accent-gradient: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
-
-  /* Spacing */
+  /* Common Variables */
   --spacing-xs: 4px;
   --spacing-sm: 8px;
   --spacing-md: 16px;
@@ -40,21 +7,61 @@
   --spacing-xl: 32px;
   --spacing-2xl: 48px;
 
-  /* Radius (More defined) */
   --radius-sm: 6px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-full: 9999px;
 
-  /* Shadows ( crisp and grounded ) */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --transition: all 0.2s ease-in-out;
+
+  /* Theme: Light (Default) */
+  --primary: #0f172a;
+  --primary-light: #1e293b;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --secondary: #fbbf24;
+  --background: #f8fafc;
+  --surface: #ffffff;
+  --surface-hover: #f1f5f9;
+  --surface-glass: rgba(255, 255, 255, 0.95);
+  --text-main: #020617;
+  --text-secondary: #475569;
+  --text-light: #94a3b8;
+  --border: #e2e8f0;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-glow: none;
-  /* Removed neon glow for decency */
 
-  /* Transitions */
-  --transition: all 0.2s ease-in-out;
+  --success: #10b981;
+  --error: #ef4444;
+}
+
+[data-theme='dark'] {
+  /* Theme: Dark */
+  --primary: #1e293b;
+  --primary-light: #334155;
+  --accent: #3b82f6;
+  /* Lighter blue for dark mode */
+  --accent-hover: #60a5fa;
+  --secondary: #fbbf24;
+  --background: #0f172a;
+  /* Deep blue-black */
+  --surface: #1e293b;
+  /* Slate 800 */
+  --surface-hover: #334155;
+  --surface-glass: rgba(30, 41, 59, 0.95);
+  --text-main: #f8fafc;
+  /* Slate 50 */
+  --text-secondary: #cbd5e1;
+  /* Slate 300 */
+  --text-light: #94a3b8;
+  --border: #334155;
+  /* Slate 700 */
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
 }
 
 * {
@@ -134,20 +141,22 @@ ul {
 
 /* Glass Panel -> Solid Panel for Contrast */
 .glass-panel {
-  background: white;
+  background: var(--surface-glass);
   border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(10px);
 }
 
 /* Cards */
 .card,
 .product-card {
-  background: white;
+  background: var(--surface);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   transition: var(--transition);
   border: 1px solid var(--border);
   overflow: hidden;
+  color: var(--text-main);
 }
 
 .card:hover,
@@ -159,7 +168,7 @@ ul {
 
 /* Auth Pages Card */
 .auth-card {
-  background: white;
+  background: var(--surface);
   padding: 40px;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
@@ -174,13 +183,12 @@ textarea,
 select {
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid #e2e8f0;
-  /* Thicker border */
+  border: 2px solid var(--border);
   border-radius: var(--radius-sm);
   font-family: inherit;
   font-size: 15px;
   transition: var(--transition);
-  background: #fff;
+  background: var(--surface);
   color: var(--text-main);
 }
 
@@ -189,7 +197,7 @@ textarea:focus,
 select:focus {
   outline: none;
   border-color: var(--accent);
-  background: white;
+  background: var(--surface);
 }
 
 /* Utilities */
@@ -237,4 +245,151 @@ select:focus {
   --success: #10b981;
   /* Valid Success Color */
   --error: #ef4444;
+}
+
+/* Compact View Enhancements */
+@media (max-width: 768px) {
+  :root {
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 24px;
+    --spacing-2xl: 32px;
+  }
+
+  .container {
+    padding: 0 var(--spacing-sm);
+  }
+
+  body {
+    font-size: 14px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+  }
+
+  h3 {
+    font-size: 1.1rem;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}
+
+/* Component Utility Classes for Responsiveness */
+.navbar-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 70px;
+}
+
+.navbar-brand {
+  font-size: 24px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.search-form-container {
+  flex: 1;
+  margin: 0 20px;
+  max-width: 600px;
+  position: relative;
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+  background: #f0f5ff;
+  border-radius: 50px;
+  padding: 5px 15px;
+  border: 1px solid white;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.product-card-container {
+  height: 100%;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.product-image-container {
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: white;
+  border-bottom: 1px solid var(--border);
+}
+
+.product-info-container {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Compact overrides for mobile */
+@media (max-width: 768px) {
+  .navbar-container {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 10px 0;
+    gap: 10px;
+  }
+
+  .navbar-brand {
+    font-size: 20px;
+  }
+
+  /* Move search to new line on very small screens if needed, 
+     but for "compact" we might want to keep it tight. 
+     Let's allow it to take full width on mobile. */
+  .search-form-container {
+    order: 3;
+    margin: 5px 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .navbar-actions {
+    gap: 12px;
+  }
+
+  .product-image-container {
+    height: 160px;
+    /* Smaller image area */
+    padding: 10px;
+  }
+
+  .product-info-container {
+    padding: 12px;
+  }
+
+  .grid-products {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    /* Smaller cards */
+    gap: var(--spacing-md);
+  }
 }

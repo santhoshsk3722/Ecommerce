@@ -39,7 +39,7 @@ const ProductCard = ({ product }) => {
             whileHover={{ y: -8 }}
             transition={{ duration: 0.3 }}
         >
-            <Link to={`/product/${product.id}`} className="card" style={{ display: 'block', height: '100%', textDecoration: 'none', color: 'inherit', position: 'relative' }}>
+            <Link to={`/product/${product.id}`} className="card product-card-container">
                 <motion.button
                     whileHover={{ scale: 1.2 }}
                     whileTap={{ scale: 0.9 }}
@@ -56,11 +56,11 @@ const ProductCard = ({ product }) => {
                     ♥
                 </motion.button>
 
-                <div style={{ height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', background: 'white', borderBottom: '1px solid var(--border)' }}>
+                <div className="product-image-container">
                     <img src={product.image} alt={product.title} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', transition: 'transform 0.3s' }} />
                 </div>
 
-                <div style={{ padding: '20px' }}>
+                <div className="product-info-container">
                     <div style={{ fontSize: '12px', color: 'var(--accent)', textTransform: 'uppercase', fontWeight: '600', marginBottom: '8px' }}>
                         {product.category}
                     </div>
