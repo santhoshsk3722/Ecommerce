@@ -49,14 +49,14 @@ const ProductDetail = () => {
     return (
         <PageTransition>
             <div className="container">
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(400px, 1fr) 1fr', gap: '60px', marginBottom: '60px' }}>
+                <div className="responsive-grid-detail">
                     {/* Image Section - Interactive Look */}
                     <motion.div
                         initial={{ opacity: 0, x: -50 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.6 }}
                         style={{
-                            background: 'white',
+                            background: 'var(--surface)',
                             borderRadius: 'var(--radius-lg)',
                             padding: '40px',
                             display: 'flex',
@@ -102,7 +102,7 @@ const ProductDetail = () => {
 
                         {/* AI SUMMARY BLOCK */}
                         <div style={{
-                            background: 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)',
+                            background: 'var(--surface-hover)',
                             padding: '20px',
                             borderRadius: '12px',
                             borderLeft: '4px solid var(--accent)',
@@ -111,7 +111,7 @@ const ProductDetail = () => {
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', color: 'var(--accent)', fontWeight: '800' }}>
                                 <span>🤖 AI Verdict</span>
                             </div>
-                            <p style={{ fontSize: '14px', color: '#334155', fontStyle: 'italic', margin: 0 }}>
+                            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', fontStyle: 'italic', margin: 0 }}>
                                 "Customers love the <strong>build quality</strong> and <strong>value for money</strong>. Some verified users mentioned the <strong>shipping</strong> was faster than expected. Highly recommended for <strong>{product.category}</strong> enthusiasts."
                             </p>
                         </div>
@@ -170,7 +170,7 @@ const ProductDetail = () => {
                                     onClick={() => navigate(`/product/${p.id}`)}
                                     style={{ cursor: 'pointer' }}
                                 >
-                                    <div style={{ background: 'white', borderRadius: '8px', padding: '20px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', height: '100%' }}>
+                                    <div style={{ background: 'var(--surface)', borderRadius: '8px', padding: '20px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', height: '100%' }}>
                                         <img src={p.image} alt={p.title} style={{ width: '100%', height: '150px', objectFit: 'contain', marginBottom: '15px' }} />
                                         <h4 style={{ fontSize: '16px', margin: '0 0 10px 0', height: '40px', overflow: 'hidden' }}>{p.title}</h4>
                                         <div style={{ color: 'var(--primary)', fontWeight: 'bold' }}>${p.price}</div>

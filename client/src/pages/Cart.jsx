@@ -23,18 +23,18 @@ const Cart = () => {
     }
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px', alignItems: 'start' }}>
+        <div className="responsive-grid-2col">
             <div style={{ background: 'white', padding: '20px' }}>
                 <h2 style={{ marginBottom: '20px' }}>My Cart ({cart.length})</h2>
                 {cart.map(item => (
-                    <div key={item.id} style={{ display: 'flex', gap: '20px', padding: '20px 0', borderBottom: '1px solid #f0f0f0' }}>
+                    <div key={item.id} style={{ display: 'flex', flexDirection: 'row', gap: '20px', padding: '20px 0', borderBottom: '1px solid #f0f0f0', flexWrap: 'wrap' }}>
                         <div style={{ width: '100px', height: '100px', flexShrink: 0 }}>
                             <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                         </div>
-                        <div style={{ flex: 1 }}>
+                        <div style={{ flex: 1, minWidth: '200px' }}>
                             <h3 style={{ fontSize: '16px', fontWeight: '500' }}>{item.title}</h3>
                             <div style={{ margin: '10px 0', fontWeight: 'bold' }}>${item.price}</div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     <button
                                         onClick={() => updateQuantity(item.id, item.quantity - 1)}

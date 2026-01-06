@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useLoyalty } from '../context/LoyaltyContext';
 import { useNavigate, Link } from 'react-router-dom';
 import PaymentModal from '../components/PaymentModal';
 
 const Checkout = () => {
     const { user } = useAuth();
     const { cart, cartTotal, clearCart } = useCart();
+    const { points, spendPoints } = useLoyalty();
     const navigate = useNavigate();
 
     const [address, setAddress] = useState('');
     const [couponCode, setCouponCode] = useState('');
     const [discount, setDiscount] = useState(0);
+    const [redeemedPoints, setRedeemedPoints] = useState(0); // Points user wants to spend
     const [paymentMethod, setPaymentMethod] = useState('Card');
     const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
@@ -88,7 +91,8 @@ const Checkout = () => {
         }
     };
 
-    const finalTotal = Math.max(0, cartTotal - discount);
+    const pointDiscount = redeemedPoints / 10; // 10 points = $1
+    const finalTotal = Math.max(0, cartTotal - discount - pointDiscount);
 
     const handlePlaceOrder = async () => {
         try {
@@ -114,6 +118,7 @@ const Checkout = () => {
             const data = await res.json();
             if (data.message === 'success') {
                 // Show inline success instead of alert
+                if (redeemedPoints > 0) spendPoints(redeemedPoints);
                 setOrderSuccess(data.orderId);
                 clearCart();
             } else {
@@ -149,10 +154,10 @@ const Checkout = () => {
     // Order Success View
     if (orderSuccess) {
         return (
-            <div style={{ maxWidth: '600px', margin: '40px auto', background: 'white', padding: '50px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', textAlign: 'center' }}>
+            <div style={{ maxWidth: '600px', margin: '40px auto', background: 'var(--surface)', padding: '50px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', textAlign: 'center' }}>
                 <div style={{ width: '80px', height: '80px', background: '#10b981', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', margin: '0 auto 20px' }}>✓</div>
-                <h2 style={{ fontSize: '28px', color: '#0f172a', marginBottom: '10px' }}>Order Placed Successfully!</h2>
-                <p style={{ color: '#64748b', marginBottom: '30px' }}>Your order #{orderSuccess} has been confirmed. We will ship it shortly.</p>
+                <h2 style={{ fontSize: '28px', color: 'var(--text-main)', marginBottom: '10px' }}>Order Placed Successfully!</h2>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>Your order #{orderSuccess} has been confirmed. We will ship it shortly.</p>
                 <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
                     <Link to={`/order/${orderSuccess}`} className="btn btn-primary" style={{ padding: '12px 25px' }}>Track Order</Link>
                     <Link to="/" className="btn btn-secondary" style={{ padding: '12px 25px' }}>Continue Shopping</Link>
@@ -164,7 +169,7 @@ const Checkout = () => {
     if (cart.length === 0) return <div className="container">Your cart is empty.</div>;
 
     return (
-        <div style={{ maxWidth: '900px', margin: '40px auto', background: 'white', padding: '10px 30px 40px', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
+        <div style={{ maxWidth: '900px', margin: '40px auto', background: 'var(--surface)', padding: '10px 30px 40px', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
             <h2 style={{ marginBottom: '30px', borderBottom: '1px solid #eee', paddingBottom: '20px', fontSize: '24px' }}>Checkout</h2>
 
             {errors.general && (
@@ -173,11 +178,11 @@ const Checkout = () => {
                 </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '40px' }}>
+            <div className="responsive-grid-checkout">
                 {/* Left Column: Address */}
                 <div>
-                    <h3 style={{ fontSize: '18px', marginBottom: '20px', color: '#333' }}>1. Shipping Address</h3>
-                    <div className="card" style={{ padding: '20px', border: errors.address ? '1px solid #dc2626' : 'none', boxShadow: 'none', background: '#f8fafc' }}>
+                    <h3 style={{ fontSize: '18px', marginBottom: '20px', color: 'var(--text-main)' }}>1. Shipping Address</h3>
+                    <div className="card" style={{ padding: '20px', border: errors.address ? '1px solid #dc2626' : 'none', boxShadow: 'none', background: 'var(--surface-hover)' }}>
                         <textarea
                             value={address}
                             onChange={(e) => { setAddress(e.target.value); if (errors.address) setErrors(prev => ({ ...prev, address: null })); }}
@@ -190,7 +195,8 @@ const Checkout = () => {
                                 borderRadius: '8px',
                                 resize: 'vertical',
                                 fontSize: '14px',
-                                background: 'white'
+                                background: 'var(--surface)',
+                                color: 'var(--text-main)'
                             }}
                         />
                         {errors.address && <div style={{ color: '#dc2626', fontSize: '12px', marginTop: '5px' }}>{errors.address}</div>}
@@ -201,9 +207,9 @@ const Checkout = () => {
 
                     {/* Payment Method Selection */}
                     <div style={{ marginTop: '30px' }}>
-                        <h3 style={{ fontSize: '18px', marginBottom: '20px', color: '#333' }}>2. Payment Method</h3>
+                        <h3 style={{ fontSize: '18px', marginBottom: '20px', color: 'var(--text-main)' }}>2. Payment Method</h3>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '18px', border: paymentMethod === 'Card' ? '2px solid var(--primary)' : '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', background: paymentMethod === 'Card' ? '#f0f9ff' : 'white', transition: 'all 0.2s' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '18px', border: paymentMethod === 'Card' ? '2px solid var(--primary)' : '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', background: paymentMethod === 'Card' ? 'var(--surface-hover)' : 'var(--surface)', transition: 'all 0.2s' }}>
                                 <input
                                     type="radio"
                                     name="payment"
@@ -212,13 +218,13 @@ const Checkout = () => {
                                     style={{ accentColor: 'var(--primary)', width: '20px', height: '20px' }}
                                 />
                                 <div>
-                                    <div style={{ fontWeight: '600', color: '#0f172a' }}>Credit/Debit Card</div>
-                                    <div style={{ fontSize: '12px', color: '#64748b' }}>Visa, Mastercard, Amex</div>
+                                    <div style={{ fontWeight: '600', color: 'var(--text-main)' }}>Credit/Debit Card</div>
+                                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Visa, Mastercard, Amex</div>
                                 </div>
                                 <span style={{ marginLeft: 'auto', fontSize: '20px' }}>💳</span>
                             </label>
 
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '18px', border: paymentMethod === 'UPI' ? '2px solid var(--primary)' : '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', background: paymentMethod === 'UPI' ? '#f0f9ff' : 'white', transition: 'all 0.2s' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '18px', border: paymentMethod === 'UPI' ? '2px solid var(--primary)' : '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', background: paymentMethod === 'UPI' ? 'var(--surface-hover)' : 'var(--surface)', transition: 'all 0.2s' }}>
                                 <input
                                     type="radio"
                                     name="payment"
@@ -227,13 +233,13 @@ const Checkout = () => {
                                     style={{ accentColor: 'var(--primary)', width: '20px', height: '20px' }}
                                 />
                                 <div>
-                                    <div style={{ fontWeight: '600', color: '#0f172a' }}>UPI / GPay / PhonePe</div>
-                                    <div style={{ fontSize: '12px', color: '#64748b' }}>Instant payment</div>
+                                    <div style={{ fontWeight: '600', color: 'var(--text-main)' }}>UPI / GPay / PhonePe</div>
+                                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Instant payment</div>
                                 </div>
                                 <span style={{ marginLeft: 'auto', fontSize: '20px' }}>📱</span>
                             </label>
 
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '18px', border: paymentMethod === 'COD' ? '2px solid var(--primary)' : '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', background: paymentMethod === 'COD' ? '#f0f9ff' : 'white', transition: 'all 0.2s' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '18px', border: paymentMethod === 'COD' ? '2px solid var(--primary)' : '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', background: paymentMethod === 'COD' ? 'var(--surface-hover)' : 'var(--surface)', transition: 'all 0.2s' }}>
                                 <input
                                     type="radio"
                                     name="payment"
@@ -242,8 +248,8 @@ const Checkout = () => {
                                     style={{ accentColor: 'var(--primary)', width: '20px', height: '20px' }}
                                 />
                                 <div>
-                                    <div style={{ fontWeight: '600', color: '#0f172a' }}>Cash on Delivery</div>
-                                    <div style={{ fontSize: '12px', color: '#64748b' }}>Pay when it arrives</div>
+                                    <div style={{ fontWeight: '600', color: 'var(--text-main)' }}>Cash on Delivery</div>
+                                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Pay when it arrives</div>
                                 </div>
                                 <span style={{ marginLeft: 'auto', fontSize: '20px' }}>💵</span>
                             </label>
@@ -253,7 +259,7 @@ const Checkout = () => {
 
                 {/* Right Column: Order Summary */}
                 <div>
-                    <div style={{ position: 'sticky', top: '100px', background: '#f8fafc', padding: '25px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ position: 'sticky', top: '100px', background: 'var(--surface-hover)', padding: '25px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                         <h3 style={{ fontSize: '18px', marginBottom: '20px' }}>Order Summary</h3>
 
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontSize: '14px', color: '#64748b' }}>
@@ -273,7 +279,7 @@ const Checkout = () => {
 
                         <div style={{ borderTop: '2px dashed #cbd5e1', margin: '20px 0' }}></div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '25px', fontWeight: '800', fontSize: '20px', color: '#0f172a' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '25px', fontWeight: '800', fontSize: '20px', color: 'var(--text-main)' }}>
                             <span>Total Payable</span>
                             <span>${finalTotal.toFixed(2)}</span>
                         </div>
@@ -286,7 +292,7 @@ const Checkout = () => {
                                     placeholder="Enter Promo Code"
                                     value={couponCode}
                                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                                    style={{ flex: 1, padding: '12px', border: '1px solid #cbd5e1', borderRadius: '8px', background: 'white' }}
+                                    style={{ flex: 1, padding: '12px', border: '1px solid #cbd5e1', borderRadius: '8px', background: 'var(--surface)', color: 'var(--text-main)' }}
                                 />
                                 <button onClick={handleApplyCoupon} className="btn" style={{ padding: '10px 20px', background: '#0f172a', color: 'white', borderRadius: '8px' }}>Apply</button>
                             </div>
@@ -298,6 +304,32 @@ const Checkout = () => {
                             </button>
                             {errors.coupon && <div style={{ color: '#dc2626', fontSize: '12px' }}>{errors.coupon}</div>}
                         </div>
+
+                        {/* TechCoins Redemption */}
+                        {points > 0 && (
+                            <div style={{ marginBottom: '25px', padding: '15px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontWeight: '600', color: '#15803d' }}>
+                                    <span>Redeem TechCoins</span>
+                                    <span>{points} Available</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                    <input
+                                        type="range"
+                                        min="0"
+                                        max={Math.min(points, Math.ceil(cartTotal * 10))} // Cap at order total or max points
+                                        step="10"
+                                        value={redeemedPoints}
+                                        onChange={(e) => setRedeemedPoints(parseInt(e.target.value))}
+                                        style={{ flex: 1, accentColor: '#10b981' }}
+                                    />
+                                    <span style={{ minWidth: '60px', textAlign: 'right', fontWeight: 'bold' }}>{redeemedPoints} pts</span>
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#166534', marginTop: '5px', display: 'flex', justifyContent: 'space-between' }}>
+                                    <span>Rate: 10 pts = $1.00</span>
+                                    <span>Save: ${(redeemedPoints / 10).toFixed(2)}</span>
+                                </div>
+                            </div>
+                        )}
 
                         <button
                             onClick={handleProceed}
