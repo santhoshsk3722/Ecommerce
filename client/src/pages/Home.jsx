@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import ProductCard from '../components/ProductCard';
 import HeroSlider from '../components/HeroSlider';
 import PageTransition from '../components/PageTransition';
+import noProductsImg from '../assets/no-products.png';
 
 const Home = () => {
     const [products, setProducts] = useState([]);
@@ -107,7 +108,7 @@ const Home = () => {
                             style={{
                                 padding: '10px 20px',
                                 borderRadius: '50px',
-                                background: (category === cat) || (cat === 'All' && !category) ? 'var(--primary)' : 'white',
+                                background: (category === cat) || (cat === 'All' && !category) ? 'var(--primary)' : 'var(--surface)',
                                 color: (category === cat) || (cat === 'All' && !category) ? 'white' : 'var(--text-main)',
                                 border: '1px solid var(--border)',
                                 whiteSpace: 'nowrap',
@@ -126,8 +127,8 @@ const Home = () => {
                 <div>
                     {search && <h2 style={{ marginBottom: '20px' }}>Results for "{search}"</h2>}
                     {products.length === 0 ? (
-                        <div style={{ background: 'white', padding: '60px', textAlign: 'center', borderRadius: '12px' }}>
-                            <img src="https://rukminim2.flixcart.com/www/800/800/promos/16/05/2019/d438a32e-765a-4d8b-b4a6-520b560971e8.png?q=90" alt="No Items" style={{ width: '200px', marginBottom: '20px', opacity: 0.5 }} />
+                        <div style={{ background: 'var(--surface)', padding: '60px', textAlign: 'center', borderRadius: '12px' }}>
+                            <img src={noProductsImg} alt="No Items" style={{ width: '200px', marginBottom: '20px', opacity: 0.8 }} />
                             <h3 style={{ color: 'var(--text-secondary)' }}>No products found</h3>
                             <p style={{ color: 'var(--text-light)' }}>Try searching for something else.</p>
                         </div>

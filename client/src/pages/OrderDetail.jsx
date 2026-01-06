@@ -68,7 +68,7 @@ const OrderDetail = () => {
                             disabled={cancelling}
                             className="btn"
                             style={{
-                                background: '#dc2626',
+                                background: 'var(--error)',
                                 color: 'white',
                                 border: 'none',
                                 opacity: cancelling ? 0.7 : 1
@@ -81,8 +81,8 @@ const OrderDetail = () => {
                 </div>
             </div>
 
-            <div style={{ background: 'white', border: '1px solid #e0e0e0', borderRadius: '8px', overflow: 'hidden', marginBottom: '30px' }}>
-                <div style={{ padding: '20px', background: '#f5f5f5', borderBottom: '1px solid #e0e0e0', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden', marginBottom: '30px' }}>
+                <div style={{ padding: '20px', background: 'var(--surface-hover)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}>
                     <div>
                         <strong>Placed on:</strong> {new Date(order.date).toLocaleDateString()}
                     </div>
@@ -92,10 +92,10 @@ const OrderDetail = () => {
                 </div>
 
                 {/* Tracking Stepper */}
-                <div style={{ padding: '30px 20px', borderBottom: '1px solid #f0f0f0' }}>
+                <div style={{ padding: '30px 20px', borderBottom: '1px solid var(--border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', maxWidth: '600px', margin: '0 auto' }}>
                         {/* Progress Line */}
-                        <div style={{ position: 'absolute', top: '15px', left: '0', height: '4px', background: '#e0e0e0', width: '100%', borderRadius: '4px', zIndex: 0 }}></div>
+                        <div style={{ position: 'absolute', top: '15px', left: '0', height: '4px', background: 'var(--border)', width: '100%', borderRadius: '4px', zIndex: 0 }}></div>
 
                         {/* Fill Progress */}
                         <div style={{
@@ -113,8 +113,8 @@ const OrderDetail = () => {
                                 <div key={step} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, position: 'relative' }}>
                                     <div style={{
                                         width: '32px', height: '32px', borderRadius: '50%',
-                                        background: isCompleted ? '#10b981' : '#f0f0f0',
-                                        color: isCompleted ? 'white' : '#888',
+                                        background: isCompleted ? '#10b981' : 'var(--surface-hover)',
+                                        color: isCompleted ? 'white' : 'var(--text-secondary)',
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                                         fontSize: '14px', fontWeight: 'bold',
                                         border: isCompleted ? '4px solid #10b981' : '4px solid white', // solid green if active
@@ -122,7 +122,7 @@ const OrderDetail = () => {
                                     }}>
                                         {isCompleted ? '✓' : i + 1}
                                     </div>
-                                    <span style={{ fontSize: '13px', fontWeight: '600', marginTop: '8px', color: isCompleted ? '#10b981' : '#94a3b8' }}>
+                                    <span style={{ fontSize: '13px', fontWeight: '600', marginTop: '8px', color: isCompleted ? '#10b981' : 'var(--text-secondary)' }}>
                                         {step === 'Placed' && status === 'processing' ? 'Processing' : step}
                                     </span>
                                 </div>
@@ -135,11 +135,11 @@ const OrderDetail = () => {
                     <h3 style={{ fontSize: '16px', marginBottom: '15px' }}>Items</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         {order.items.map(item => (
-                            <div key={item.id} style={{ display: 'flex', gap: '15px', alignItems: 'center', borderBottom: '1px solid #f0f0f0', paddingBottom: '15px' }}>
+                            <div key={item.id} style={{ display: 'flex', gap: '15px', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '15px' }}>
                                 <img src={item.image} alt={item.title} style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
                                 <div style={{ flex: 1 }}>
                                     <div style={{ fontWeight: '500' }}>{item.title}</div>
-                                    <div style={{ color: '#888', fontSize: '14px' }}>x{item.quantity}</div>
+                                    <div style={{ color: 'var(--text-secondary)', fontSize: '14px' }}>x{item.quantity}</div>
                                 </div>
                                 <div style={{ fontWeight: 'bold' }}>${item.price}</div>
                             </div>
@@ -149,12 +149,12 @@ const OrderDetail = () => {
                     <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                             <h3 style={{ fontSize: '16px', marginBottom: '5px' }}>Shipping Address</h3>
-                            <p style={{ color: '#666', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>{order.shipping_address || 'N/A'}</p>
+                            <p style={{ color: 'var(--text-secondary)', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>{order.shipping_address || 'N/A'}</p>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                            <div style={{ color: '#888' }}>Total Amount</div>
+                            <div style={{ color: 'var(--text-secondary)' }}>Total Amount</div>
                             <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--primary)' }}>${order.total.toFixed(2)}</div>
-                            <div style={{ fontSize: '12px', color: '#666' }}>Payment: {order.payment_method}</div>
+                            <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Payment: {order.payment_method}</div>
                         </div>
                     </div>
                 </div>
@@ -163,13 +163,13 @@ const OrderDetail = () => {
 
                 {/* VISCERAL LIVE TRACKING MAP */}
                 {(order.status.toLowerCase() === 'shipped' || order.status.toLowerCase() === 'out for delivery') && (
-                    <div style={{ padding: '20px', background: 'white', border: '1px solid #e0e0e0', borderRadius: '8px', marginBottom: '30px', position: 'relative', overflow: 'hidden' }}>
+                    <div style={{ padding: '20px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', marginBottom: '30px', position: 'relative', overflow: 'hidden' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                             <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <span style={{ width: '10px', height: '10px', background: 'red', borderRadius: '50%', boxShadow: '0 0 10px red', animation: 'pulse 1s infinite' }}></span>
                                 Live Delivery Tracking
                             </h3>
-                            <span style={{ fontSize: '12px', color: '#666', background: '#f5f5f5', padding: '4px 10px', borderRadius: '12px' }}>Updating live...</span>
+                            <span style={{ fontSize: '12px', color: 'var(--text-secondary)', background: 'var(--surface-hover)', padding: '4px 10px', borderRadius: '12px' }}>Updating live...</span>
                         </div>
 
                         {/* Map Visualization */}

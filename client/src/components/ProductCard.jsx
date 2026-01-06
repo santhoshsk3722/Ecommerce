@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { motion } from 'framer-motion';
+import defaultProductImg from '../assets/default-product.png';
 
 const ProductCard = ({ product }) => {
     const { user } = useAuth();
@@ -57,7 +58,7 @@ const ProductCard = ({ product }) => {
                 </motion.button>
 
                 <div className="product-image-container">
-                    <img src={product.image} alt={product.title} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', transition: 'transform 0.3s' }} />
+                    <img src={product.image || defaultProductImg} onError={(e) => { e.target.onerror = null; e.target.src = defaultProductImg; }} alt={product.title} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', transition: 'transform 0.3s' }} />
                 </div>
 
                 <div className="product-info-container">

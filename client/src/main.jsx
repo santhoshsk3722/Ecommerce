@@ -38,10 +38,14 @@ class ErrorBoundary extends Component {
 
 console.log("App mounting...");
 
+import { ThemeProvider } from './context/ThemeContext';
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
     </ErrorBoundary>
   </StrictMode>,
 )

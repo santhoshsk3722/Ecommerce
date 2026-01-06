@@ -96,7 +96,7 @@ const Profile = () => {
                             </div>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px' }}>Email</label>
-                                <input value={user.email} disabled style={{ background: '#f9f9f9', color: '#666' }} />
+                                <input value={user.email} disabled style={{ background: 'var(--surface-hover)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }} />
                             </div>
                             <div>
                                 <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500', fontSize: '14px' }}>Address</label>
@@ -161,12 +161,12 @@ const Profile = () => {
                     <div className="card" style={{ padding: '30px' }}>
                         <h3 style={{ fontSize: '18px', marginBottom: '20px' }}>Points History</h3>
                         <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                            {history.length === 0 ? <p style={{ color: '#888', fontStyle: 'italic' }}>No history yet.</p> : (
+                            {history.length === 0 ? <p style={{ color: 'var(--text-secondary)', fontStyle: 'italic' }}>No history yet.</p> : (
                                 <table style={{ width: '100%', fontSize: '14px', borderCollapse: 'collapse' }}>
                                     <tbody>
                                         {history.map((h, i) => (
                                             <tr key={i} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                                <td style={{ padding: '10px 0', color: '#666' }}>{new Date(h.date).toLocaleDateString()}</td>
+                                                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>{new Date(h.date).toLocaleDateString()}</td>
                                                 <td style={{ padding: '10px 0' }}>{h.reason}</td>
                                                 <td style={{ padding: '10px 0', textAlign: 'right', fontWeight: 'bold', color: h.amount > 0 ? 'var(--success)' : '#ef4444' }}>
                                                     {h.amount > 0 ? '+' : ''}{h.amount}

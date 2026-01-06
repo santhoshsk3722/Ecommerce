@@ -76,25 +76,25 @@ const Login = () => {
             </div>
 
             {/* Right Side - Form */}
-            <div style={{ width: '45%', minWidth: '400px', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
+            <div style={{ width: '45%', minWidth: '400px', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px' }}>
                 <div style={{ width: '100%', maxWidth: '380px' }}>
-                    <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '40px', color: '#0f172a' }}>
+                    <h2 style={{ fontSize: '28px', fontWeight: '800', marginBottom: '40px', color: 'var(--text-main)' }}>
                         {authMethod === 'email' ? (isLogin ? 'Welcome back' : 'Create an account') : 'Phone Login'}
                     </h2>
 
                     <div style={{ display: 'flex', gap: '15px', marginBottom: '30px' }}>
-                        <button onClick={() => setAuthMethod('email')} style={{ paddingBottom: '5px', border: 'none', background: 'none', borderBottom: authMethod === 'email' ? '2px solid #2563eb' : '2px solid transparent', color: authMethod === 'email' ? '#2563eb' : '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>Email</button>
-                        <button onClick={() => setAuthMethod('phone')} style={{ paddingBottom: '5px', border: 'none', background: 'none', borderBottom: authMethod === 'phone' ? '2px solid #2563eb' : '2px solid transparent', color: authMethod === 'phone' ? '#2563eb' : '#94a3b8', fontWeight: 'bold', cursor: 'pointer' }}>Phone Code</button>
+                        <button onClick={() => setAuthMethod('email')} style={{ paddingBottom: '5px', border: 'none', background: 'none', borderBottom: authMethod === 'email' ? '2px solid #2563eb' : '2px solid transparent', color: authMethod === 'email' ? '#2563eb' : 'var(--text-light)', fontWeight: 'bold', cursor: 'pointer' }}>Email</button>
+                        <button onClick={() => setAuthMethod('phone')} style={{ paddingBottom: '5px', border: 'none', background: 'none', borderBottom: authMethod === 'phone' ? '2px solid #2563eb' : '2px solid transparent', color: authMethod === 'phone' ? '#2563eb' : 'var(--text-light)', fontWeight: 'bold', cursor: 'pointer' }}>Phone Code</button>
                     </div>
 
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         {authMethod === 'email' && (
                             <>
                                 {!isLogin && (
-                                    <input type="text" placeholder="Full Name" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc' }} />
+                                    <input type="text" placeholder="Full Name" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)' }} />
                                 )}
-                                <input type="email" placeholder="Email address" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc' }} />
-                                <input type="password" placeholder="Password" required value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc' }} />
+                                <input type="email" placeholder="Email address" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)' }} />
+                                <input type="password" placeholder="Password" required value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)' }} />
                             </>
                         )}
 
@@ -112,7 +112,7 @@ const Login = () => {
                     {authMethod === 'email' && (
                         <div style={{ marginTop: '30px' }}>
                             <div style={{ width: '100%', height: '1px', background: '#e2e8f0', marginBottom: '30px', position: 'relative' }}>
-                                <span style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: 'white', padding: '0 10px', color: '#94a3b8', fontSize: '12px' }}>OR CONTINUE WITH</span>
+                                <span style={{ position: 'absolute', top: '-10px', left: '50%', transform: 'translateX(-50%)', background: 'var(--surface)', padding: '0 10px', color: 'var(--text-light)', fontSize: '12px' }}>OR CONTINUE WITH</span>
                             </div>
                             <GoogleLoginButton />
                         </div>

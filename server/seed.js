@@ -143,7 +143,7 @@ const setupDatabase = async () => {
                 price: 1299.99,
                 description: "The ultimate iPhone. Titanium design, A17 Pro chip, and the most advanced camera system ever in an iPhone.",
                 category: "Electronics",
-                image: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=800&q=80",
+                image: "https://images.unsplash.com/photo-1700125621736-75a6d245a308?auto=format&fit=crop&w=800&q=80",
                 rating: 4.8,
                 seller_id: sellerId
             },
@@ -152,7 +152,7 @@ const setupDatabase = async () => {
                 price: 1199.99,
                 description: "Galaxy AI is here. Epic titanium design. Note Assist. Photo Assist. Circle to Search.",
                 category: "Electronics",
-                image: "https://images.unsplash.com/photo-1610945265078-3858a0828671?auto=format&fit=crop&w=800&q=80",
+                image: "https://images.unsplash.com/photo-1746255805692-2394067a7179?auto=format&fit=crop&w=800&q=80",
                 rating: 4.7,
                 seller_id: sellerId
             },
@@ -161,7 +161,7 @@ const setupDatabase = async () => {
                 price: 348.00,
                 description: "Industry Leading Noise Canceling Wireless Headphones with Auto Noise Canceling Optimizer.",
                 category: "Audio",
-                image: "https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?auto=format&fit=crop&w=800&q=80",
+                image: "https://images.unsplash.com/photo-1641048930621-ab5d225ae5b0?auto=format&fit=crop&w=800&q=80",
                 rating: 4.6,
                 seller_id: sellerId
             },
@@ -170,7 +170,7 @@ const setupDatabase = async () => {
                 price: 1099.00,
                 description: "Lean. Mean. M3 machine. Supercharged by the next-generation M3 chip.",
                 category: "Electronics",
-                image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca4?auto=format&fit=crop&w=800&q=80",
+                image: "https://images.unsplash.com/photo-1541807084-5c52b6b3adef?auto=format&fit=crop&w=800&q=80",
                 rating: 4.9,
                 seller_id: sellerId
             },
