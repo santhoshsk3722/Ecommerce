@@ -151,13 +151,15 @@ const Checkout = () => {
 
     if (!user) return <div className="container">Please login to checkout.</div>;
 
+    // Scroll to top when order is successful
+    useEffect(() => {
+        if (orderSuccess) {
+            window.scrollTo(0, 0);
+        }
+    }, [orderSuccess]);
+
     // Order Success View
     if (orderSuccess) {
-        // Scroll to top when success view is shown
-        useEffect(() => {
-            window.scrollTo(0, 0);
-        }, []);
-
         return (
             <div style={{ maxWidth: '600px', margin: '40px auto', background: 'var(--surface)', padding: '50px', borderRadius: '16px', boxShadow: 'var(--shadow-lg)', textAlign: 'center' }}>
                 <div style={{ width: '80px', height: '80px', background: 'var(--success)', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '40px', margin: '0 auto 20px' }}>✓</div>
