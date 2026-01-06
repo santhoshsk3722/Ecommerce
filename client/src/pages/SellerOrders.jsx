@@ -95,13 +95,21 @@ const SellerOrders = () => {
                                 <h4 style={{ fontSize: '14px', marginBottom: '10px', color: 'var(--text-secondary)' }}>Items to Ship:</h4>
                                 {order.items.map(item => (
                                     <div key={item.product_id} style={{ display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '10px' }}>
-                                        <img src={item.image} alt={item.title} style={{ width: '40px', height: '40px', objectFit: 'contain', background: 'white', borderRadius: '4px' }} />
+                                        <img src={item.image} alt={item.title} style={{ width: '40px', height: '40px', objectFit: 'contain', background: 'var(--surface)', borderRadius: '4px', border: '1px solid var(--border)' }} />
                                         <div style={{ flex: 1 }}>
                                             <div style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-main)' }}>{item.title}</div>
                                             <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Qty: {item.quantity} | Price: ${item.price}</div>
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+
+                            <div style={{ marginBottom: '15px', padding: '15px', background: 'var(--surface-hover)', borderRadius: '8px' }}>
+                                <h4 style={{ fontSize: '14px', marginBottom: '8px', color: 'var(--text-main)' }}>Shipping Details</h4>
+                                <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                                    <div><strong>To:</strong> {order.customer_name} ({order.customer_email})</div>
+                                    <div style={{ marginTop: '5px' }}><strong>Address:</strong> {order.shipping_address || 'No address provided'}</div>
+                                </div>
                             </div>
 
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', borderTop: '1px solid var(--border)', paddingTop: '15px' }}>

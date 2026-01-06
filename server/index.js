@@ -1,12 +1,30 @@
 const express = require('express');
 const cors = require('cors');
 const db = require('./db');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json());
+
+// --- Payment Routes ---
+app.post('/api/create-payment-intent', async (req, res) => {
+    const { amount, currency = 'usd' } = req.body;
+    try {
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(amount * 100), // Convert to cents
+            currency: currency,
+            automatic_payment_methods: { enabled: true },
+        });
+        res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
 
 // --- Products Routes ---
 
@@ -343,8 +361,9 @@ app.get('/api/orders/seller/:sellerId', (req, res) => {
     // Actually, simpler: Get distinct orders first.
 
     const orderSql = `
-        SELECT DISTINCT o.* 
+        SELECT DISTINCT o.*, u.name as customer_name, u.email as customer_email
         FROM orders o
+        JOIN users u ON o.user_id = u.id
         JOIN order_items oi ON o.id = oi.order_id
         JOIN products p ON oi.product_id = p.id
         WHERE p.seller_id = ?

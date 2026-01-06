@@ -1,106 +1,108 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 
-const StripePayment = ({ total, onPaymentSuccess }) => {
-    const [cardData, setCardData] = useState({ number: '', expiry: '', cvc: '', name: '' });
-    const [processing, setProcessing] = useState(false);
-    const [error, setError] = useState('');
+// Initialize Stripe outside to avoid recreation
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
-    const formatCardNumber = (value) => {
-        return value.replace(/\W/gi, '').replace(/(.{4})/g, '$1 ').trim().substring(0, 19);
-    };
+const CheckoutForm = ({ amount, onSuccess, onClose }) => {
+    const stripe = useStripe();
+    const elements = useElements();
+    const [message, setMessage] = useState(null);
+    const [isProcessing, setIsProcessing] = useState(false);
 
-    const handleInput = (e) => {
-        const { name, value } = e.target;
-        if (name === 'number') {
-            setCardData(prev => ({ ...prev, [name]: formatCardNumber(value) }));
-        } else if (name === 'expiry') {
-            let val = value.replace(/\W/gi, '');
-            if (val.length > 2) val = val.substring(0, 2) + '/' + val.substring(2, 4);
-            setCardData(prev => ({ ...prev, [name]: val }));
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        if (!stripe || !elements) return;
+
+        setIsProcessing(true);
+
+        const { error, paymentIntent } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                // Return to a success page or handle inline?
+                // We will handle inline for this SPA
+                return_url: window.location.origin,
+            },
+            redirect: 'if_required', // Important to avoid redirect if not needed
+        });
+
+        if (error) {
+            setMessage(error.message);
+            setIsProcessing(false);
+        } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+            onSuccess();
         } else {
-            setCardData(prev => ({ ...prev, [name]: value }));
+            setMessage("Unexpected state.");
+            setIsProcessing(false);
         }
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        setError('');
-        if (cardData.number.replace(/\s/g, '').length < 16) return setError('Invalid Card Number');
-        if (cardData.cvc.length < 3) return setError('Invalid CVC');
+    return (
+        <form onSubmit={handleSubmit}>
+            <PaymentElement />
+            {message && <div style={{ color: 'red', marginTop: '10px', fontSize: '14px' }}>{message}</div>}
 
-        setProcessing(true);
-        // Simulate Banking Network Delay
-        setTimeout(() => {
-            setProcessing(false);
-            onPaymentSuccess();
-        }, 2000);
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                <button
+                    disabled={isProcessing || !stripe || !elements}
+                    id="submit"
+                    className="btn btn-primary"
+                    style={{ flex: 1 }}
+                >
+                    {isProcessing ? "Processing..." : `Pay $${amount.toFixed(2)}`}
+                </button>
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="btn btn-secondary"
+                    disabled={isProcessing}
+                >
+                    Cancel
+                </button>
+            </div>
+        </form>
+    );
+};
+
+const StripePayment = ({ amount, onSuccess, onClose }) => {
+    const [clientSecret, setClientSecret] = useState('');
+
+    useEffect(() => {
+        // Create PaymentIntent as soon as the page loads
+        if (amount > 0) {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            fetch(`${apiUrl}/api/create-payment-intent`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ amount }),
+            })
+                .then((res) => res.json())
+                .then((data) => setClientSecret(data.clientSecret));
+        }
+    }, [amount]);
+
+    const options = {
+        clientSecret,
+        appearance: {
+            theme: 'night', // or 'stripe' based on preference, 'night' fits dark mode better or 'auto'
+            variables: {
+                colorPrimary: '#2563eb',
+            },
+        },
     };
 
     return (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            <h3 style={{ fontSize: '16px', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '24px' }}>💳</span> Pay with Card
-            </h3>
-
-            <div style={{ position: 'relative' }}>
-                <input
-                    name="number"
-                    value={cardData.number}
-                    onChange={handleInput}
-                    placeholder="0000 0000 0000 0000"
-                    maxLength="19"
-                    required
-                    style={{ width: '100%', padding: '12px', paddingLeft: '45px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '16px', letterSpacing: '2px' }}
-                />
-                <span style={{ position: 'absolute', left: '12px', top: '12px', color: '#888' }}>🔒</span>
-            </div>
-
-            <div style={{ display: 'flex', gap: '15px' }}>
-                <input
-                    name="expiry"
-                    value={cardData.expiry}
-                    onChange={handleInput}
-                    placeholder="MM/YY"
-                    maxLength="5"
-                    required
-                    style={{ flex: 1, padding: '12px', border: '1px solid #ccc', borderRadius: '4px' }}
-                />
-                <input
-                    name="cvc"
-                    value={cardData.cvc}
-                    onChange={handleInput}
-                    type="password"
-                    placeholder="CVC"
-                    maxLength="3"
-                    required
-                    style={{ flex: 1, padding: '12px', border: '1px solid #ccc', borderRadius: '4px' }}
-                />
-            </div>
-
-            <input
-                name="name"
-                value={cardData.name}
-                onChange={handleInput}
-                placeholder="Cardholder Name"
-                required
-                style={{ width: '100%', padding: '12px', border: '1px solid #ccc', borderRadius: '4px' }}
-            />
-
-            {error && <div style={{ color: 'red', fontSize: '13px' }}>{error}</div>}
-
-            <button
-                type="submit"
-                disabled={processing}
-                className="btn btn-primary"
-                style={{ width: '100%', padding: '14px', background: processing ? '#ccc' : '#2874f0' }}
-            >
-                {processing ? 'Processing...' : `Pay $${total.toFixed(2)}`}
-            </button>
-            <div style={{ textAlign: 'center', fontSize: '11px', color: '#888', marginTop: '10px' }}>
-                <span style={{ display: 'inline-block', marginRight: '5px' }}>🔒</span>
-                Secure 256-bit SSL Encrypted Payment
-            </div>
-        </form>
+        <div style={{ minHeight: '300px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            {clientSecret ? (
+                <Elements options={options} stripe={stripePromise}>
+                    <CheckoutForm amount={amount} onSuccess={onSuccess} onClose={onClose} />
+                </Elements>
+            ) : (
+                <div style={{ textAlign: 'center' }}>Loading Secure Payment...</div>
+            )}
+        </div>
     );
 };
 

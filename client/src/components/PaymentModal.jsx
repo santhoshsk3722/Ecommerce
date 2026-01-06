@@ -18,14 +18,14 @@ const PaymentModal = ({ isOpen, onClose, onConfirm, total }) => {
                         initial={{ y: 200, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: 200, opacity: 0 }}
-                        style={{ position: 'fixed', top: '50%', left: '50%', x: '-50%', y: '-50%', transform: 'translate(-50%, -50%)', background: 'white', padding: '30px', borderRadius: '8px', width: '90%', maxWidth: '400px', zIndex: 1001, boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}
+                        style={{ position: 'fixed', top: '50%', left: '50%', x: '-50%', y: '-50%', transform: 'translate(-50%, -50%)', background: 'var(--surface)', padding: '30px', borderRadius: '12px', width: '90%', maxWidth: '450px', zIndex: 1001, boxShadow: 'var(--shadow-lg)', color: 'var(--text-main)' }}
                     >
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                            <h3 style={{ margin: 0 }}>Secure Checkout</h3>
-                            <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#888' }}>&times;</button>
+                            <h3 style={{ margin: 0, fontSize: '20px' }}>Secure Checkout</h3>
+                            <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: 'var(--text-secondary)' }}>&times;</button>
                         </div>
 
-                        <StripePayment total={total} onPaymentSuccess={onConfirm} />
+                        <StripePayment amount={total} onSuccess={onConfirm} onClose={onClose} />
                     </motion.div>
                 </>
             )}

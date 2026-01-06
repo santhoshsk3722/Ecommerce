@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useLoyalty } from '../context/LoyaltyContext';
 import { useNavigate, Link } from 'react-router-dom';
 import PaymentModal from '../components/PaymentModal';
+import { sendOrderConfirmation } from '../utils/emailService';
 
 const Checkout = () => {
     const { user } = useAuth();
@@ -117,6 +118,9 @@ const Checkout = () => {
 
             const data = await res.json();
             if (data.message === 'success') {
+                // Send Confirmation Email
+                sendOrderConfirmation(data.orderId, user, cart, finalTotal, address);
+
                 // Show inline success instead of alert
                 if (redeemedPoints > 0) spendPoints(redeemedPoints);
                 setOrderSuccess(data.orderId);
