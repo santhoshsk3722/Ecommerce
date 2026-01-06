@@ -433,3 +433,29 @@ select:focus {
     /* Stack singly on small mobiles */
   }
 }
+
+/* Product Detail Image Wrapper (Desktop default) */
+.product-detail-image-wrapper {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  max-height: 600px;
+}
+
+@media (max-width: 900px) {
+
+  /* Reduce padding for detail image on mobile */
+  .product-detail-image-wrapper {
+    padding: 20px !important;
+  }
+
+  /* Enhance Navbar search spacing */
+  .search-form-container {
+    margin-top: 10px !important;
+    margin-bottom: 5px !important;
+  }
+}

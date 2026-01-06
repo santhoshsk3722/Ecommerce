@@ -52,19 +52,10 @@ const ProductDetail = () => {
                 <div className="responsive-grid-detail">
                     {/* Image Section - Interactive Look */}
                     <motion.div
+                        className="product-detail-image-wrapper"
                         initial={{ opacity: 0, x: -50 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.6 }}
-                        style={{
-                            background: 'var(--surface)',
-                            borderRadius: 'var(--radius-lg)',
-                            padding: '40px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: 'var(--shadow-lg)',
-                            maxHeight: '600px'
-                        }}
                     >
                         <motion.img
                             whileHover={{ scale: 1.05 }}
