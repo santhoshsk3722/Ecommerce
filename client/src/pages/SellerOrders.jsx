@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { motion } from 'framer-motion';
+import { sendOrderShippedEmail } from '../utils/emailService';
 
 const SellerOrders = () => {
     const { user } = useAuth();
@@ -53,6 +54,13 @@ const SellerOrders = () => {
                 .then(data => {
                     if (data.message === 'updated') {
                         showToast('Tracking info added & marked Shipped', 'success');
+
+                        // Find the order to get customer details
+                        const order = orders.find(o => o.id === orderId);
+                        if (order && order.customer_email) {
+                            sendOrderShippedEmail(orderId, order.customer_name, order.customer_email, trackingId, courierName);
+                        }
+
                         setOrders(orders.map(o => o.id === orderId ? { ...o, tracking_id: trackingId, courier_name: courierName, status: 'Shipped' } : o));
                     }
                 });
