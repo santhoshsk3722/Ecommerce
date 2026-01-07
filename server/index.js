@@ -336,6 +336,53 @@ app.get('/api/orders/:userId', (req, res) => {
     });
 });
 
+// Admin Analytics
+app.get('/api/admin/analytics', (req, res) => {
+    const categorySql = `
+        SELECT p.category, COUNT(oi.id) as count, SUM(oi.price) as revenue 
+        FROM order_items oi 
+        JOIN products p ON oi.product_id = p.id 
+        GROUP BY p.category
+    `;
+
+    const topProductsSql = `
+        SELECT p.title, COUNT(oi.id) as sold, SUM(oi.price) as revenue 
+        FROM order_items oi 
+        JOIN products p ON oi.product_id = p.id 
+        GROUP BY p.id 
+        ORDER BY sold DESC 
+        LIMIT 5
+    `;
+
+    const categoryPromise = new Promise((resolve, reject) => {
+        db.all(categorySql, [], (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+        });
+    });
+
+    const topProductsPromise = new Promise((resolve, reject) => {
+        db.all(topProductsSql, [], (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+        });
+    });
+
+    Promise.all([categoryPromise, topProductsPromise])
+        .then(([categories, topProducts]) => {
+            res.json({
+                message: "success",
+                data: {
+                    salesByCategory: categories,
+                    topProducts: topProducts
+                }
+            });
+        })
+        .catch(err => {
+            res.status(400).json({ error: err.message });
+        });
+});
+
 // Get Seller Orders (Orders containing seller's products)
 app.get('/api/orders/seller/:sellerId', (req, res) => {
     const sql = `
