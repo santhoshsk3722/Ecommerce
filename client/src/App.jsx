@@ -35,6 +35,22 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Checkout = lazy(() => import('./pages/Checkout'));
 
 function App() {
+  // Global Error Handler for Chunk Loading Failures (Vite/Rollup)
+  React.useEffect(() => {
+    const handler = (event) => {
+      if (
+        event?.message?.includes?.('Failed to fetch dynamically imported module') ||
+        event?.message?.includes?.('Importing a module script failed')
+      ) {
+        console.warn('Chunk load failed, reloading...', event);
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener('error', handler);
+    return () => window.removeEventListener('error', handler);
+  }, []);
+
   return (
     <HelmetProvider>
       <ToastProvider>

@@ -1,3 +1,11 @@
+/**
+ * @file LoyaltyContext.jsx
+ * @description Loyalty Points System.
+ * 
+ * Tracks user points and tier status (Bronze, Silver, Gold).
+ * Provides functions to earn points and check rewards eligibility.
+ */
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 

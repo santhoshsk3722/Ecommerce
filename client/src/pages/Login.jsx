@@ -1,3 +1,11 @@
+/**
+ * @file Login.jsx
+ * @description User Authentication Page (Login/Signup).
+ * 
+ * Handles email/password authentication and Google OAuth.
+ * Includes "Forgot Password" flow and OTP verification logic.
+ */
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -134,7 +142,7 @@ const Login = () => {
             <div style={{ flex: 1, background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px', color: 'white' }} className="login-hero">
                 <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
                     <div style={{ fontSize: '48px', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ color: 'var(--text-main)' }}>Tech</span>
+                        <span style={{ color: 'white' }}>Tech</span>
                         <span style={{ color: '#3b82f6' }}>Orbit</span>
                     </div>
                     <h1 style={{ fontSize: '36px', lineHeight: '1.2', marginBottom: '30px', fontWeight: 'bold' }}>

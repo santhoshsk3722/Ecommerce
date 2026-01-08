@@ -1,6 +1,14 @@
+/**
+ * @file AIChatbot.jsx
+ * @description AI Shopping Assistant.
+ * 
+ * A floating chatbot that helps users find products, track orders, and navigate the site.
+ * Uses a rule-based system to interpret user intent and provide instant responses.
+ */
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import aiAvatar from '../assets/ai-avatar.png';
 
 const AIChatbot = () => {
@@ -13,6 +21,7 @@ const AIChatbot = () => {
     const [products, setProducts] = useState([]);
     const messagesEndRef = useRef(null);
     const navigate = useNavigate();
+    const location = useLocation();
 
     const suggestedQuestions = [
         "Track my order",
@@ -45,6 +54,9 @@ const AIChatbot = () => {
 
         fetchProducts();
     }, []);
+
+    // Hide on login page (Placed here to avoid Hook Rule Violation)
+    if (location.pathname === '/login') return null;
 
     const processMessage = (userMsg) => {
         setIsTyping(true);

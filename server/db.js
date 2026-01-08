@@ -1,3 +1,12 @@
+/**
+ * @file db.js
+ * @description SQLite Database Configuration and Schema Migration.
+ * 
+ * This file establishes the connection to the SQLite database ('shop.db').
+ * It also handles automatic schema migrations, ensuring tables and columns
+ * exist when the server starts.
+ */
+
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
@@ -32,6 +41,11 @@ const db = new sqlite3.Database(dbPath, (err) => {
         // Auto-migration for User Avatar
         db.run("ALTER TABLE users ADD COLUMN avatar TEXT", (err) => {
             if (!err) console.log("Migration: Added 'avatar' column to users table.");
+        });
+
+        // Auto-migration for Review Images
+        db.run("ALTER TABLE reviews ADD COLUMN image TEXT", (err) => {
+            if (!err) console.log("Migration: Added 'image' column to reviews table.");
         });
         // Auto-migration for Addresses
         db.run(`CREATE TABLE IF NOT EXISTS addresses (

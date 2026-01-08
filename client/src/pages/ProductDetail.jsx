@@ -1,3 +1,12 @@
+/**
+ * @file ProductDetail.jsx
+ * @description Product Details Page.
+ * 
+ * Shows detailed information for a single product, including images, variants, price,
+ * and description. Allows users to add the item to the cart or wishlist.
+ * Displays "Rich Product Reviews" with images.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';

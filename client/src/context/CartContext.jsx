@@ -1,3 +1,11 @@
+/**
+ * @file CartContext.jsx
+ * @description Shopping Cart State Management.
+ * 
+ * Manages the global cart state, including adding/removing items,
+ * updating quantities, calculating totals, and syncing with localStorage.
+ */
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const CartContext = createContext();

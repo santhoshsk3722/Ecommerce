@@ -1,3 +1,10 @@
+/**
+ * @file SellerDashboard.jsx
+ * @description Seller Management Hub.
+ * 
+ * Provides an overview for sellers, including sales stats and product management links.
+ */
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';

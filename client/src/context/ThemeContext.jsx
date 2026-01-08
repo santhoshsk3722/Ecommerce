@@ -1,3 +1,11 @@
+/**
+ * @file ThemeContext.jsx
+ * @description Theme Management (Dark/Light Mode).
+ * 
+ * Toggles the application theme and persists the preference in localStorage.
+ * Updates the CSS variables on the root document element.
+ */
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const ThemeContext = createContext();

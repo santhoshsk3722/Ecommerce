@@ -1,3 +1,14 @@
+/**
+ * @file index.js
+ * @description Main Entry Point for the Backend Server.
+ * 
+ * This file configures and runs the Express application, handling:
+ * - API Routes for Products, Users, Orders, Payments, and more.
+ * - Middleware configuration (CORS, Rate Limiting, Security headers).
+ * - Database connection and static file serving (if applicable).
+ * - Integration with Stripe for payments and EmailJS (client-side fallback).
+ */
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -819,15 +830,15 @@ app.delete('/api/admin/users/:id', (req, res) => {
 
 // Add Review
 app.post('/api/reviews', (req, res) => {
-    const { user_id, product_id, rating, comment } = req.body;
+    const { user_id, product_id, rating, comment, image } = req.body;
 
     // Check for existing review
     db.get("SELECT id FROM reviews WHERE user_id = ? AND product_id = ?", [user_id, product_id], (err, row) => {
         if (err) return res.status(400).json({ "error": err.message });
         if (row) return res.status(400).json({ "error": "You have already reviewed this product." });
 
-        const sql = "INSERT INTO reviews (user_id, product_id, rating, comment) VALUES (?,?,?,?)";
-        db.run(sql, [user_id, product_id, rating, comment], function (err) {
+        const sql = "INSERT INTO reviews (user_id, product_id, rating, comment, image) VALUES (?,?,?,?,?)";
+        db.run(sql, [user_id, product_id, rating, comment, image || ''], function (err) {
             if (err) {
                 res.status(400).json({ "error": err.message });
                 return;
@@ -840,9 +851,18 @@ app.post('/api/reviews', (req, res) => {
 
 // Update Review
 app.put('/api/reviews', (req, res) => {
-    const { user_id, product_id, rating, comment } = req.body;
-    const sql = "UPDATE reviews SET rating = ?, comment = ?, date = CURRENT_TIMESTAMP WHERE user_id = ? AND product_id = ?";
-    db.run(sql, [rating, comment, user_id, product_id], function (err) {
+    const { user_id, product_id, rating, comment, image } = req.body;
+    let sql, params;
+
+    if (image !== undefined) {
+        sql = "UPDATE reviews SET rating = ?, comment = ?, image = ?, date = CURRENT_TIMESTAMP WHERE user_id = ? AND product_id = ?";
+        params = [rating, comment, image, user_id, product_id];
+    } else {
+        sql = "UPDATE reviews SET rating = ?, comment = ?, date = CURRENT_TIMESTAMP WHERE user_id = ? AND product_id = ?";
+        params = [rating, comment, user_id, product_id];
+    }
+
+    db.run(sql, params, function (err) {
         if (err) return res.status(400).json({ "error": err.message });
         if (this.changes === 0) return res.status(404).json({ "error": "Review not found" });
         res.json({ "message": "success" });

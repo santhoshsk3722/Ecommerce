@@ -1,3 +1,11 @@
+/**
+ * @file Profile.jsx
+ * @description User Profile Management.
+ * 
+ * Allows users to view and edit personal information (Name, Address).
+ * Displays Loyalty Points status and current tier.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useLoyalty } from '../context/LoyaltyContext';

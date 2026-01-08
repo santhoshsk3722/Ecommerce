@@ -1,3 +1,11 @@
+/**
+ * @file SellerOrders.jsx
+ * @description Seller Order Management.
+ * 
+ * Lists orders containing products sold by the current user.
+ * Allows sellers to update order status (e.g., Shipped) and add tracking info.
+ */
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';

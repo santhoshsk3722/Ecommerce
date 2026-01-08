@@ -1,3 +1,11 @@
+/**
+ * @file AdminDashboard.jsx
+ * @description Administrator Dashboard.
+ * 
+ * Exclusive area for admin users (`role='admin'`).
+ * Displays platform-wide analytics (Users, Revenue, Orders) and management controls.
+ */
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';

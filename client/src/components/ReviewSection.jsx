@@ -8,6 +8,7 @@ const ReviewSection = ({ productId }) => {
     const [loading, setLoading] = useState(true);
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState('');
+    const [image, setImage] = useState(''); // New image state
     const [submitting, setSubmitting] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
 
@@ -19,6 +20,7 @@ const ReviewSection = ({ productId }) => {
         if (myReview) {
             setRating(myReview.rating);
             setComment(myReview.comment);
+            setImage(myReview.image || ''); // Populate image
             setIsEditing(true);
         }
     };
@@ -39,6 +41,44 @@ const ReviewSection = ({ productId }) => {
             });
     };
 
+    const handleImageUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const img = new Image();
+                img.src = reader.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    // Resize to max 500x500 for reviews
+                    const maxDim = 500;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > maxDim) {
+                            height *= maxDim / width;
+                            width = maxDim;
+                        }
+                    } else {
+                        if (height > maxDim) {
+                            width *= maxDim / height;
+                            height = maxDim;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    const resizedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                    setImage(resizedBase64);
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!user) {
@@ -57,12 +97,14 @@ const ReviewSection = ({ productId }) => {
                     user_id: user.id,
                     product_id: productId,
                     rating: parseInt(rating),
-                    comment
+                    comment,
+                    image // Send image
                 })
             });
             const data = await res.json();
             if (data.message === 'success') {
                 setComment('');
+                setImage('');
                 setIsEditing(false); // Reset edit mode
                 fetchReviews(); // Refresh list
             } else {
@@ -118,6 +160,29 @@ const ReviewSection = ({ productId }) => {
                                         </span>
                                     ))}
                                 </div>
+                            </div>
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', cursor: 'pointer', color: 'var(--accent)' }}>
+                                    📷 Add Photo
+                                    <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} />
+                                </label>
+                                {image && (
+                                    <div style={{ marginTop: '10px', position: 'relative', width: 'fit-content' }}>
+                                        <img src={image} alt="Review Preview" style={{ maxHeight: '100px', borderRadius: '8px', border: '1px solid var(--border)' }} />
+                                        <button
+                                            type="button"
+                                            onClick={() => setImage('')}
+                                            style={{
+                                                position: 'absolute', top: '-5px', right: '-5px',
+                                                background: 'red', color: 'white', borderRadius: '50%',
+                                                width: '20px', height: '20px', border: 'none', cursor: 'pointer',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px'
+                                            }}
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                             <textarea
                                 value={comment}
@@ -221,6 +286,11 @@ const ReviewSection = ({ productId }) => {
                                         </div>
                                     </div>
                                     <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, margin: '10px 0' }}>{review.comment}</p>
+                                    {review.image && (
+                                        <div style={{ marginTop: '10px', marginBottom: '10px' }}>
+                                            <img src={review.image} alt="Review" style={{ maxHeight: '150px', borderRadius: '8px', border: '1px solid var(--border)' }} />
+                                        </div>
+                                    )}
                                     <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>
                                         {new Date(review.date).toLocaleDateString()}
                                     </div>

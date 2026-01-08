@@ -1,3 +1,12 @@
+/**
+ * @file Checkout.jsx
+ * @description Checkout Process.
+ * 
+ * Collects shipping address and payment information.
+ * Supports multiple payment methods (Stripe, UPI, COD) and integrates
+ * coupon validation and loyalty point redemption.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';

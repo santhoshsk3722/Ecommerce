@@ -56,11 +56,36 @@ const NotificationDropdown = () => {
     const handleNotificationClick = (notif) => {
         if (!notif.is_read) markAsRead(notif.id);
 
-        // Basic routing logic based on message content (heuristic)
-        if (notif.message.includes('Order')) navigate('/orders');
-        else if (notif.message.includes('Welcome')) navigate('/profile');
-
         setIsOpen(false);
+
+        // Smart Redirection Logic
+        const msg = notif.message;
+
+        // 1. Specific Order (e.g. "Order #123 shipped")
+        const orderMatch = msg.match(/Order #(\d+)/i);
+        if (orderMatch && orderMatch[1]) {
+            navigate(`/order/${orderMatch[1]}`);
+            return;
+        }
+
+        // 2. Generic Order
+        if (msg.includes('Order')) {
+            navigate('/orders');
+            return;
+        }
+
+        // 3. Offers/Coupons
+        if (msg.includes('Offer') || msg.includes('Sale') || msg.includes('Discount') || msg.includes('Coupon')) {
+            // Navigate to home with a special flag to maybe show a popup or scroll to deals
+            navigate('/?showCommand=offers');
+            return;
+        }
+
+        // 4. Welcome/Profile
+        if (msg.includes('Welcome') || msg.includes('Profile')) {
+            navigate('/profile');
+            return;
+        }
     };
 
     const unreadCount = notifications.filter(n => !n.is_read).length;

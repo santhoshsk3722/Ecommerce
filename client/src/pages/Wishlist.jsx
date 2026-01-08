@@ -1,3 +1,11 @@
+/**
+ * @file Wishlist.jsx
+ * @description User Wishlist.
+ * 
+ * Displays products saved by the user for later purchase.
+ * Allows moving items to the cart or removing them.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';

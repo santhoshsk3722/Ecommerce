@@ -1,3 +1,11 @@
+/**
+ * @file AuthContext.jsx
+ * @description Authentication State Management.
+ * 
+ * Provides user login, logout, and signup functionality.
+ * Persists user session using localStorage.
+ */
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();

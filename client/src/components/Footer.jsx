@@ -1,3 +1,11 @@
+/**
+ * @file Footer.jsx
+ * @description Site Footer.
+ * 
+ * Displays comprehensive links (About, Support, Socials), newsletter signup,
+ * and copyright information.
+ */
+
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';

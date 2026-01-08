@@ -1,3 +1,11 @@
+/**
+ * @file EditProduct.jsx
+ * @description Seller Product Editing.
+ * 
+ * Form for sellers to modify existing product details.
+ * Pre-fills the form with current product data.
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';

@@ -1,3 +1,11 @@
+/**
+ * @file OrderDetail.jsx
+ * @description Single Order View.
+ * 
+ * Shows comprehensive details for a specific order (Items, Shipping, Payment).
+ * Includes "Download Invoice" functionality and Order Tracking stepper.
+ */
+
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -125,7 +133,7 @@ const OrderDetail = () => {
                             className="btn btn-secondary"
                             style={{ display: 'flex', alignItems: 'center', gap: '5px' }}
                         >
-                            🖨️ Invoice
+                            🖨️ Download Invoice
                         </button>
                         {order.status === 'Processing' && (
                             <button

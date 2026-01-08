@@ -1,3 +1,11 @@
+/**
+ * @file AddProduct.jsx
+ * @description Seller Product Creation.
+ * 
+ * Form for sellers to add new products, including details like
+ * title, price, description, category, and uploading an image.
+ */
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';

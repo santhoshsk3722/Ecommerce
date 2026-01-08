@@ -1,3 +1,11 @@
+/**
+ * @file MyOrders.jsx
+ * @description User Order History.
+ * 
+ * Displays a list of past orders for the logged-in user.
+ * Provides links to view detailed order information.
+ */
+
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';

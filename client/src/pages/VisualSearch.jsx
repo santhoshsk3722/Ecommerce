@@ -1,3 +1,11 @@
+/**
+ * @file VisualSearch.jsx
+ * @description Visual Search Interface.
+ * 
+ * Allows users to upload an image to search for similar products.
+ * Uses a simulated AI/ML service to analyze the image and return keywords.
+ */
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
