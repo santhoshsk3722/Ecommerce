@@ -1,0 +1,102 @@
+# TechOrbit - Component Analysis & Architecture Guide
+
+This document provides a detailed breakdown of the components and architectural decisions used in the TechOrbit project. It is designed to help developers and reviewers understand the "Where, What, and Why" of the codebase.
+
+---
+
+## 🏗️ 1. Frontend Architecture (Client)
+**Location:** `client/src/`
+
+The frontend is built with **React** using a component-based architecture. State is managed globally via React Context for critical data (User, Cart) and locally for UI states.
+
+### 🔹 Core Contexts (Global State)
+- **AuthContext** (`context/AuthContext.jsx`):
+  - *Why?* Centralizes user login status. Prevents "prop drilling" user data to every component. Handles session persistence.
+- **CartContext** (`context/CartContext.jsx`):
+  - *Why?* Manages the shopping cart array. accessible from anywhere (NavBar badge, Product Page, Checkout). Calculates totals.
+- **ToastContext** (`context/ToastContext.jsx`):
+  - *Why?* Provides a uniform way to show popup notifications (Success/Error) from any component without duplicating UI code.
+
+### 🔹 Pages (Route Views)
+**Location:** `pages/`
+These are the top-level components rendered by the Router.
+
+1. **Home.jsx**
+   - *Role:* Landing page.
+   - *Key Components:* `HeroSlider`, `ProductCard`, `VisualSearch` entry point.
+2. **ProductDetail.jsx**
+   - *Role:* Single Product view.
+   - *Why separate?* Needs to fetch specific ID data, handle variants, and display rich info (Reviews, AI Verdict).
+3. **Login.jsx / Signup**
+   - *Role:* Authentication gateway.
+   - *Features:* Switch states between Login/Register, handles OTP logic.
+4. **Checkout.jsx**
+   - *Role:* Order finalization.
+   - *Complexity:* Handles Address inputs, Coupon validation, Loyalty points, and Payment Method selection.
+5. **SellerDashboard.jsx / AdminDashboard.jsx**
+   - *Role:* Restricted areas for management.
+   - *Why?* Separates operational logic from the shopping experience.
+
+### 🔹 Reusable Components
+**Location:** `components/`
+Small, isolated UI blocks used across multiple pages.
+
+- **NavBar.jsx**:
+  - *Why?* Persistent navigation. logic for "Active Link" and "Cart Badge" lives here.
+- **ProductCard.jsx**:
+  - *Why?* Standardized display for products in grids (Home, Search Results, Related Products). Ensures consistent styling.
+- **LoadingSpinner.jsx**:
+  - *Why?* Visual feedback during async operations (API calls). Improves UX over a blank screen.
+- **VisualSearch.jsx**:
+  - *Why?* Encapsulates the complex logic of image uploading and client-side processing, keeping the parent pages clean.
+- **ReviewSection.jsx**:
+  - *Why?* A self-contained module for fetching, displaying, and posting reviews. Can be dropped into any entity page.
+- **PaymentModal.jsx**:
+  - *Why?* Modals disrupt flow less than full page redirects for quick actions like simulated payments.
+
+---
+
+## 🔙 2. Backend Architecture (Server)
+**Location:** `server/`
+
+The backend is a RESTful API built with **Node.js** and **Express**. It serves as the bridge between the frontend and the database.
+
+### 🔹 Core Files
+1. **index.js (The Application Entry)**
+   - *Role:* Initializes the Express app, sets up Middleware (CORS, JSON parsing), and defines all API Routes.
+   - *Why monolithic?* For this scale, keeping routes in one file simplifies debugging and gives a clear overview of the API surface.
+
+2. **db.js (Database Layer)**
+   - *Role:* Configures the SQLite database connection.
+   - *Why SQLite?* Zero-configuration, file-based database. Perfect for portable projects and rapid prototyping without needing external DB servers.
+
+### 🔹 Database Schema (Tables)
+- **users**: Stores ID, name, email, password (hashed), role, and loyalty points.
+- **products**: Stores catalog data (title, price, image, stock).
+- **orders**: Records transaction history.
+- **order_items**: Links Orders to specific Products (Many-to-Many relationship).
+- **reviews**: User feedback storage.
+- **coupons**: Discount codes configuration.
+
+### 🔹 Key API Endpoints
+- `POST /api/login`: Authenticates credentials.
+- `GET /api/products`: Fetches catalog with filtering support.
+- `POST /api/orders`: Handles transaction processing (stock deduction, point handling).
+- `POST /api/visual-search`: Receives image data and performs logic to find matches.
+
+---
+
+## 🎨 3. Design Decisions
+
+### **Styling Strategy**
+- **Decision:** Vanilla CSS with CSS Variables (`var(--primary)`, `var(--surface)`).
+- **Why?**
+  - **Performance**: No runtime overhead of CSS-in-JS libraries.
+  - **Theming**: Makes implementing Dark Mode incredibly easy by just swapping variable values on the root element.
+
+### **Lazy Loading**
+- **Decision:** Used React.lazy() for all Pages.
+- **Why?** Drastically reduces the "Initial Bundle Size". A user visiting the Home page shouldn't download the code for the Admin Dashboard.
+
+---
+*This structure allows the project to be scalable (easy to add new pages/components) and maintainable (clear separation of concerns).*
