@@ -1,1 +1,0 @@
-import{j as t,m as a}from"./index-BO1qUiSh.js";const n=({children:i})=>t.jsx(a.div,{initial:{opacity:0,y:20},animate:{opacity:1,y:0},exit:{opacity:0,y:-20},transition:{duration:.3},children:i});export{n as P};
