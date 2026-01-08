@@ -44,9 +44,9 @@ const InstallPrompt = () => {
                     exit={{ y: 100, opacity: 0 }}
                     style={{
                         position: 'fixed',
-                        bottom: '20px',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
+                        bottom: '70px', // Just above Bottom Nav
+                        left: '5%',     // Simple centering
+                        width: '90%',   // Responsive width
                         zIndex: 1000,
                         background: 'var(--surface)',
                         padding: '15px 20px',
@@ -56,8 +56,8 @@ const InstallPrompt = () => {
                         alignItems: 'center',
                         gap: '15px',
                         border: '1px solid var(--primary)',
-                        maxWidth: '90%',
-                        width: '400px'
+                        maxWidth: '400px', // Cap max width
+                        margin: '0 auto' // Just in case
                     }}
                 >
                     <div style={{ fontSize: '24px' }}>📲</div>

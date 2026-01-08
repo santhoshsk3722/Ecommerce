@@ -55,9 +55,11 @@ const NavBar = () => {
                     <span style={{ color: 'var(--accent)' }}>Orbit</span>
                 </Link>
 
-                <VisualSearch />
+                <div className={`nav-search-wrapper ${location.pathname !== '/' ? 'hide-on-mobile' : ''}`}>
+                    <VisualSearch />
+                </div>
 
-                <div className="navbar-actions">
+                <div className="navbar-actions" style={{ flexShrink: 0, zIndex: 1002, position: 'relative' }}>
 
                     {/* Notification Bell */}
                     {user && <NotificationDropdown />}
@@ -117,7 +119,7 @@ const NavBar = () => {
                                     boxShadow: 'var(--shadow-lg)',
                                     border: '1px solid var(--border)',
                                     padding: '10px 0',
-                                    zIndex: 100
+                                    zIndex: 2000
                                 }}>
                                     <Link to="/profile" onClick={() => setShowProfileMenu(false)} style={{ display: 'block', padding: '10px 20px', color: 'var(--text-main)', textDecoration: 'none', transition: 'background 0.2s' }} className="menu-item">Profile</Link>
                                     <Link to="/orders" onClick={() => setShowProfileMenu(false)} style={{ display: 'block', padding: '10px 20px', color: 'var(--text-main)', textDecoration: 'none', transition: 'background 0.2s' }} className="menu-item">My Orders</Link>

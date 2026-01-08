@@ -318,6 +318,13 @@ select:focus {
   color: var(--text-main);
 }
 
+/* Wrapper for Search to control flex ordering */
+.nav-search-wrapper {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
 .navbar-actions {
   display: flex;
   align-items: center;
@@ -358,26 +365,46 @@ select:focus {
   .navbar-container {
     height: auto;
     flex-wrap: wrap;
+    /* Allow wrapping */
     padding: 10px 0;
-    gap: 10px;
+    justify-content: space-between;
+    /* Spread Brand and Actions */
+    align-items: center;
   }
 
   .navbar-brand {
     font-size: 20px;
-  }
-
-  /* Move search to new line on very small screens if needed, 
-     but for "compact" we might want to keep it tight. 
-     Let's allow it to take full width on mobile. */
-  .search-form-container {
-    order: 3;
-    margin: 5px 0;
-    width: 100%;
-    max-width: 100%;
+    order: 1;
+    /* First */
+    flex: 0 0 auto;
+    /* Don't grow or shrink */
   }
 
   .navbar-actions {
-    gap: 12px;
+    gap: 10px;
+    order: 2;
+    /* Second (Right side) */
+    flex: 0 0 auto;
+    /* Don't grow or shrink */
+    justify-content: flex-end;
+  }
+
+  /* Force Search Wrapper to new line (Row 2) */
+  .nav-search-wrapper {
+    order: 3;
+    /* Third (New Line) */
+    width: 100%;
+    margin: 10px 0 5px 0;
+    flex: 0 0 100%;
+    /* Force full width */
+    justify-content: center;
+  }
+
+  .search-form-container {
+    width: 100%;
+    /* Inner container takes full width of wrapper */
+    max-width: 100%;
+    margin: 0;
   }
 
   .product-image-container {
@@ -592,5 +619,10 @@ select:focus {
   /* Add padding to body so content isn't hidden behind nav */
   body {
     padding-bottom: 70px;
+  }
+
+  /* Helper to hide elements on mobile (used for Search Bar on non-home pages) */
+  .hide-on-mobile {
+    display: none !important;
   }
 }

@@ -147,8 +147,8 @@ const AIChatbot = () => {
                     onClick={() => setIsOpen(true)}
                     style={{
                         position: 'fixed',
-                        bottom: '30px',
-                        right: '30px',
+                        bottom: '160px', // Tighter spacing related to InstallPrompt
+                        right: '25px',
                         width: '60px',
                         height: '60px',
                         borderRadius: '50%',
@@ -178,8 +178,8 @@ const AIChatbot = () => {
                         exit={{ opacity: 0, y: 50, scale: 0.9 }}
                         style={{
                             position: 'fixed',
-                            bottom: '100px',
-                            right: '30px',
+                            bottom: '190px', // Adjusted to sit above button
+                            right: '25px',
                             width: '350px',
                             height: '550px',
                             background: 'var(--surface)',
@@ -269,6 +269,8 @@ const AIChatbot = () => {
                         {/* Input */}
                         <form onSubmit={handleSend} style={{ padding: '15px', background: 'var(--surface)', borderTop: '1px solid var(--border)', display: 'flex', gap: '10px', alignItems: 'center' }}>
                             <input
+                                id="chat-input"
+                                name="message"
                                 value={input}
                                 onChange={e => setInput(e.target.value)}
                                 placeholder="Ask something..."

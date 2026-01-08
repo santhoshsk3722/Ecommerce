@@ -75,12 +75,14 @@ const VisualSearch = () => {
                 <span style={{ color: 'var(--text-secondary)', fontSize: '18px', marginRight: '10px' }}>🔍</span>
                 <input
                     type="text"
+                    id="search-input"
+                    name="search"
                     placeholder="Search Products..."
                     className='search-input'
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onFocus={() => setIsFocused(true)}
-                    style={{ border: 'none', outline: 'none', flex: 1, background: 'transparent', fontSize: '14px', color: 'inherit', minWidth: 0 }}
+                    style={{ border: 'none', outline: 'none', flex: 1, background: 'transparent', fontSize: '14px', color: 'inherit', minWidth: '100px' }}
                 />
                 <button
                     type="button"
