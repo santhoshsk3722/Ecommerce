@@ -18,14 +18,14 @@ const OrderTracker = ({ status, trackingId, courier, estimatedDelivery }) => {
     // Handle Cancelled State
     if (normalizedStatus === 'cancelled') {
         return (
-            <div style={{ padding: '20px', background: '#fff4f4', border: '1px solid #ffcdd2', borderRadius: '8px', color: '#c62828', textAlign: 'center', fontWeight: 'bold' }}>
+            <div style={{ padding: '20px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--error)', borderRadius: '8px', color: 'var(--error)', textAlign: 'center', fontWeight: 'bold' }}>
                 🚫 Order Cancelled
             </div>
         );
     }
 
     return (
-        <div style={{ padding: '20px', width: '100%', background: '#fafafa', borderRadius: '8px', marginTop: '10px' }}>
+        <div style={{ padding: '20px', width: '100%', background: 'var(--surface-hover)', borderRadius: '8px', marginTop: '10px' }}>
             {/* Shipment Info Header */}
             {(trackingId || estimatedDelivery) && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px', fontSize: '14px', flexWrap: 'wrap', gap: '10px' }}>
@@ -47,7 +47,7 @@ const OrderTracker = ({ status, trackingId, courier, estimatedDelivery }) => {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative', marginTop: '10px' }}>
                 {/* Progress Bar Background */}
-                <div style={{ position: 'absolute', top: '15px', left: '0', right: '0', height: '4px', background: '#e0e0e0', zIndex: 0 }} />
+                <div style={{ position: 'absolute', top: '15px', left: '0', right: '0', height: '4px', background: 'var(--border)', zIndex: 0 }} />
 
                 {/* Active Progress Bar */}
                 <div style={{
@@ -56,7 +56,7 @@ const OrderTracker = ({ status, trackingId, courier, estimatedDelivery }) => {
                     left: '0',
                     width: `${(currentStepIndex / (steps.length - 1)) * 100}%`,
                     height: '4px',
-                    background: '#10b981',
+                    background: 'var(--success)',
                     zIndex: 0,
                     transition: 'width 0.5s ease-in-out'
                 }} />
@@ -69,9 +69,9 @@ const OrderTracker = ({ status, trackingId, courier, estimatedDelivery }) => {
                                 width: '30px',
                                 height: '30px',
                                 borderRadius: '50%',
-                                background: isCompleted ? '#10b981' : 'white',
-                                border: isCompleted ? 'none' : '4px solid #e0e0e0',
-                                boxShadow: '0 0 0 4px white',
+                                background: isCompleted ? 'var(--success)' : 'var(--surface)',
+                                border: isCompleted ? 'none' : '4px solid var(--border)',
+                                boxShadow: '0 0 0 4px var(--surface-hover)',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -82,15 +82,16 @@ const OrderTracker = ({ status, trackingId, courier, estimatedDelivery }) => {
                             }}>
                                 {isCompleted && '✓'}
                             </div>
-                            <span style={{ fontSize: '12px', textAlign: 'center', color: isCompleted ? '#10b981' : '#aaa', fontWeight: isCompleted ? '600' : 'normal' }}>
+                            <span style={{ fontSize: '12px', textAlign: 'center', color: isCompleted ? 'var(--success)' : 'var(--text-secondary)', fontWeight: isCompleted ? '600' : 'normal' }}>
                                 {step}
                             </span>
                         </div>
                     );
                 })}
             </div>
-        </div>
+        </div >
     );
 };
 
 export default OrderTracker;
+

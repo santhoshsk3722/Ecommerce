@@ -40,12 +40,19 @@ console.log("App mounting...");
 
 import { ThemeProvider } from './context/ThemeContext';
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
+const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID_HERE";
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <ThemeProvider>
-        <App />
-      </ThemeProvider>
+      <GoogleOAuthProvider clientId={clientId}>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </GoogleOAuthProvider>
     </ErrorBoundary>
   </StrictMode>,
 )
+

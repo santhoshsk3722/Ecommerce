@@ -7,15 +7,15 @@ export const SalesByCategoryChart = ({ data }) => {
     if (!data || data.length === 0) return <div style={{ padding: '20px', textAlign: 'center', color: '#888' }}>No sales data yet</div>;
 
     return (
-        <div style={{ width: '100%', height: 300 }}>
-            <ResponsiveContainer>
+        <div style={{ width: '100%', height: '100%' }}>
+            <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                     <Pie
                         data={data}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        outerRadius={100}
+                        outerRadius="80%"
                         fill="#8884d8"
                         dataKey="revenue"
                         nameKey="category"
@@ -59,3 +59,4 @@ export const TopProductsTable = ({ data }) => {
         </div>
     );
 };
+

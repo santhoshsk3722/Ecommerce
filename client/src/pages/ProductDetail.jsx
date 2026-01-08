@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
+import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import ReviewSection from '../components/ReviewSection';
 import PageTransition from '../components/PageTransition';
@@ -8,13 +10,16 @@ import { motion } from 'framer-motion';
 const ProductDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const { addToCart } = useCart();
     const [product, setProduct] = useState(null);
     const [relatedProducts, setRelatedProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isWishlisted, setIsWishlisted] = useState(false);
+    const [selectedVariants, setSelectedVariants] = useState({});
 
     useEffect(() => {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
         fetch(`${apiUrl}/api/products/${id}`)
             .then(res => res.json())
             .then(data => {
@@ -43,11 +48,57 @@ const ProductDetail = () => {
             });
     }, [id]);
 
+    useEffect(() => {
+        if (user && id) {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+            fetch(`${apiUrl}/api/wishlist/${user.id}`)
+                .then(res => res.json())
+                .then(wData => {
+                    if (wData.message === 'success') {
+                        // Ensure ID comparison is safe (string vs number)
+                        const inWishlist = wData.data.some(item => item.product_id == id || item.id == id);
+                        setIsWishlisted(inWishlist);
+                    }
+                })
+                .catch(err => console.error("Wishlist check failed", err));
+        }
+    }, [id, user]);
+
+
+    const handleWishlistToggle = async () => {
+        if (!user) {
+            navigate('/login');
+            return;
+        }
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+        try {
+            if (isWishlisted) {
+                await fetch(`${apiUrl}/api/wishlist/remove/${user.id}/${product.id}`, { method: 'DELETE' });
+                setIsWishlisted(false);
+            } else {
+                await fetch(`${apiUrl}/api/wishlist`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: user.id, product_id: product.id })
+                });
+                setIsWishlisted(true);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
     if (loading) return <div className="container" style={{ padding: '50px' }}>Loading product details...</div>;
     if (!product) return <div className="container">Product not found</div>;
 
     return (
         <PageTransition>
+            {product && (
+                <Helmet>
+                    <title>{product.title} - TechOrbit</title>
+                    <meta name="description" content={product.description?.substring(0, 160) || `Buy ${product.title} at the best price on TechOrbit.`} />
+                </Helmet>
+            )}
             <div className="container">
                 <div className="responsive-grid-detail">
                     {/* Image Section - Interactive Look */}
@@ -79,16 +130,35 @@ const ProductDetail = () => {
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '30px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', background: 'var(--success)', color: 'white', padding: '4px 12px', borderRadius: '20px', fontWeight: 'bold' }}>
-                                {product.rating} ★
+                                {product.average_rating ? Number(product.average_rating).toFixed(1) : 'New'} ★
                             </div>
-                            <span style={{ color: 'var(--text-secondary)' }}>Verified Reviews</span>
+                            <span style={{ color: 'var(--text-secondary)' }}>
+                                {product.review_count ? `${product.review_count} Verified Reviews` : 'No reviews yet'}
+                            </span>
                         </div>
 
-                        <div style={{ fontSize: '36px', fontWeight: '700', color: 'var(--primary)', marginBottom: '30px', display: 'flex', alignItems: 'center', gap: '15px' }}>
-                            ${product.price}
-                            <span style={{ fontSize: '20px', color: 'var(--text-light)', textDecoration: 'line-through', fontWeight: 'normal' }}>
-                                ${(product.price * 1.2).toFixed(2)}
-                            </span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+                            <div style={{ fontSize: '36px', fontWeight: '700', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                ${product.price}
+                                <span style={{ fontSize: '20px', color: 'var(--text-light)', textDecoration: 'line-through', fontWeight: 'normal' }}>
+                                    ${(product.price * 1.2).toFixed(2)}
+                                </span>
+                            </div>
+                            <button
+                                onClick={handleWishlistToggle}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontSize: '28px',
+                                    color: isWishlisted ? 'var(--error)' : 'var(--text-light)',
+                                    transition: 'transform 0.2s',
+                                    padding: '10px'
+                                }}
+                                title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                            >
+                                {isWishlisted ? '❤️' : '🤍'}
+                            </button>
                         </div>
 
                         {/* AI SUMMARY BLOCK */}
@@ -112,39 +182,122 @@ const ProductDetail = () => {
                         </p>
 
                         <div style={{ display: 'flex', gap: '20px', flexDirection: 'column' }}>
-                            {product.stock !== undefined && product.stock <= 0 ? (
+                            {/* VARIANTS SELECTION */}
+                            {product.variants && (() => {
+                                let parsedVariants = [];
+                                try {
+                                    parsedVariants = typeof product.variants === 'string' ? JSON.parse(product.variants) : product.variants;
+                                } catch (e) { parsedVariants = []; }
+
+                                if (!parsedVariants || parsedVariants.length === 0) return null;
+
+                                return (
+                                    <div style={{ marginBottom: '25px', padding: '15px', background: 'var(--surface)', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                                        {parsedVariants.map((v, idx) => (
+                                            <div key={idx} style={{ marginBottom: '15px' }}>
+                                                <div style={{ fontWeight: 'bold', marginBottom: '8px', fontSize: '14px' }}>{v.name}:</div>
+                                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                                    {v.options.map(opt => (
+                                                        <button
+                                                            key={opt}
+                                                            onClick={() => setSelectedVariants(prev => ({ ...prev, [v.name]: opt }))}
+                                                            style={{
+                                                                padding: '6px 14px',
+                                                                borderRadius: '20px',
+                                                                border: selectedVariants[v.name] === opt ? '2px solid var(--primary)' : '1px solid var(--border)',
+                                                                background: selectedVariants[v.name] === opt ? 'var(--primary)' : 'var(--surface-hover)',
+                                                                color: selectedVariants[v.name] === opt ? 'white' : 'var(--text-main)',
+                                                                cursor: 'pointer',
+                                                                fontSize: '13px',
+                                                                transition: 'all 0.2s'
+                                                            }}
+                                                        >
+                                                            {opt}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                );
+                            })()}
+
+                            {/* Role Restriction Check */}
+                            {user && (user.role === 'seller' || user.role === 'admin') ? (
                                 <div style={{
                                     padding: '15px',
-                                    background: 'rgba(239, 68, 68, 0.1)',
-                                    color: 'var(--error)',
+                                    background: 'var(--surface-hover)',
+                                    color: 'var(--text-secondary)',
                                     borderRadius: '8px',
                                     textAlign: 'center',
-                                    fontWeight: 'bold',
-                                    border: '1px solid rgba(239, 68, 68, 0.3)'
+                                    border: '1px solid var(--border)',
+                                    fontSize: '14px'
                                 }}>
-                                    🚫 Out of Stock
+                                    🔒 Signed in as {user.role.charAt(0).toUpperCase() + user.role.slice(1)}. <br />
+                                    Please <span style={{ color: 'var(--primary)', cursor: 'pointer', fontWeight: 'bold' }} onClick={() => navigate('/login')}>login as a customer</span> to purchase.
                                 </div>
                             ) : (
-                                <div style={{ display: 'flex', gap: '20px' }}>
-                                    <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        onClick={() => addToCart(product)}
-                                        className="btn btn-secondary"
-                                        style={{ flex: 1, padding: '20px', fontSize: '18px' }}
-                                    >
-                                        Add to Cart
-                                    </motion.button>
-                                    <motion.button
-                                        whileHover={{ scale: 1.02 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        onClick={() => { addToCart(product); navigate('/cart'); }}
-                                        className="btn btn-primary"
-                                        style={{ flex: 1, padding: '20px', fontSize: '18px' }}
-                                    >
-                                        Buy Now
-                                    </motion.button>
-                                </div>
+                                product.stock !== undefined && product.stock <= 0 ? (
+                                    <div style={{
+                                        padding: '15px',
+                                        background: 'rgba(239, 68, 68, 0.1)',
+                                        color: 'var(--error)',
+                                        borderRadius: '8px',
+                                        textAlign: 'center',
+                                        fontWeight: 'bold',
+                                        border: '1px solid rgba(239, 68, 68, 0.3)'
+                                    }}>
+                                        🚫 Out of Stock
+                                    </div>
+                                ) : (
+                                    <div style={{ display: 'flex', gap: '20px' }}>
+                                        <motion.button
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={() => {
+                                                // Validate Variants
+                                                let variantCount = 0;
+                                                try {
+                                                    const pv = typeof product.variants === 'string' ? JSON.parse(product.variants) : product.variants;
+                                                    if (pv) variantCount = pv.length;
+                                                } catch (e) { }
+
+                                                if (variantCount > 0 && Object.keys(selectedVariants).length < variantCount) {
+                                                    alert('Please select all options (Size, Color, etc.)');
+                                                    return;
+                                                }
+                                                addToCart({ ...product, selectedVariants });
+                                            }}
+                                            className="btn btn-secondary"
+                                            style={{ flex: 1, padding: '20px', fontSize: '18px' }}
+                                        >
+                                            Add to Cart
+                                        </motion.button>
+                                        <motion.button
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            onClick={() => {
+                                                // Validate Variants
+                                                let variantCount = 0;
+                                                try {
+                                                    const pv = typeof product.variants === 'string' ? JSON.parse(product.variants) : product.variants;
+                                                    if (pv) variantCount = pv.length;
+                                                } catch (e) { }
+
+                                                if (variantCount > 0 && Object.keys(selectedVariants).length < variantCount) {
+                                                    alert('Please select all options (Size, Color, etc.)');
+                                                    return;
+                                                }
+                                                addToCart({ ...product, selectedVariants });
+                                                navigate('/cart');
+                                            }}
+                                            className="btn btn-primary"
+                                            style={{ flex: 1, padding: '20px', fontSize: '18px' }}
+                                        >
+                                            Buy Now
+                                        </motion.button>
+                                    </div>
+                                )
                             )}
                             {product.stock !== undefined && product.stock > 0 && product.stock < 10 && (
                                 <div style={{ color: 'var(--error)', fontSize: '14px', fontWeight: '600', textAlign: 'center' }}>
@@ -198,3 +351,4 @@ const ProductDetail = () => {
 };
 
 export default ProductDetail;
+

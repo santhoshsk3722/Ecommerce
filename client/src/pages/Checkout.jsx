@@ -19,6 +19,25 @@ const Checkout = () => {
     const [paymentMethod, setPaymentMethod] = useState('Card');
     const [isPaymentOpen, setIsPaymentOpen] = useState(false);
 
+    // Captcha State for COD
+    const [captcha, setCaptcha] = useState('');
+    const [userCaptcha, setUserCaptcha] = useState('');
+    const [captchaError, setCaptchaError] = useState(false);
+
+    // Initial generator
+    useEffect(() => {
+        generateCaptcha();
+    }, []);
+
+    const generateCaptcha = () => {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let result = '';
+        for (let i = 0; i < 5; i++) {
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        setCaptcha(result);
+    };
+
     // UI Validation & Success States
     const [errors, setErrors] = useState({});
     const [orderSuccess, setOrderSuccess] = useState(null); // stores order ID if success
@@ -32,55 +51,78 @@ const Checkout = () => {
         }
     }, [user]);
 
+    // Scroll to top when order is successful
+    useEffect(() => {
+        if (orderSuccess) {
+            window.scrollTo(0, 0);
+        }
+    }, [orderSuccess]);
+
+
+
     const handleApplyCoupon = () => {
         if (!couponCode.trim()) return;
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        fetch(`${apiUrl}/api/validate-coupon`, {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+        fetch(`${apiUrl}/api/coupons/validate`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code: couponCode })
         })
             .then(res => res.json())
             .then(data => {
-                if (data.valid) {
-                    if (data.discountType === 'percent') {
-                        const discountValue = (cartTotal * data.value) / 100;
-                        setDiscount(discountValue);
-                        setErrors(prev => ({ ...prev, coupon: null })); // clear coupon error
+                if (data.message === 'success') {
+                    const c = data.data;
+                    let discountValue = 0;
+                    if (c.discount_type === 'percent') {
+                        discountValue = (cartTotal * c.discount_value) / 100;
+                    } else if (c.discount_type === 'fixed') {
+                        discountValue = c.discount_value;
                     }
+                    // Cap discount at total
+                    if (discountValue > cartTotal) discountValue = cartTotal;
+
+                    setDiscount(discountValue);
+                    setErrors(prev => ({ ...prev, coupon: null }));
+                    // Show success toast or message?
                 } else {
-                    setErrors(prev => ({ ...prev, coupon: data.message }));
+                    setErrors(prev => ({ ...prev, coupon: data.error || "Invalid coupon" }));
                     setDiscount(0);
                 }
-            });
+            })
+            .catch(err => setErrors(prev => ({ ...prev, coupon: "Validation failed" })));
     };
 
     const handleAutoApplyCoupon = async () => {
-        // Mocking fetching available coupons or using fixed list
-        const availableCoupons = ['SAVE10', 'WELCOME20', 'TECHORBIT50']; // In real app, fetch from API user's available coupons
+        // In a real app, you might fetch "public" coupons from an endpoint
+        const availableCoupons = ['WELCOME10', 'SAVE20', 'FREESHIP'];
 
         let bestDiscount = 0;
         let bestCode = '';
 
         setErrors(prev => ({ ...prev, coupon: "Finding best deal..." }));
 
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
         // Quick simulation of checking multiple
         for (const code of availableCoupons) {
-            const res = await fetch(`${apiUrl}/api/validate-coupon`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code })
-            });
-            const data = await res.json();
+            try {
+                const res = await fetch(`${apiUrl}/api/coupons/validate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, cartTotal })
+                });
+                const data = await res.json();
 
-            if (data.valid && data.discountType === 'percent') {
-                const val = (cartTotal * data.value) / 100;
-                if (val > bestDiscount) {
-                    bestDiscount = val;
-                    bestCode = code;
+                if (data.message === 'success') {
+                    let val = 0;
+                    if (data.data.discount_type === 'percent') val = (cartTotal * data.data.discount_value) / 100;
+                    else val = data.data.discount_value; // fixed
+
+                    if (val > bestDiscount) {
+                        bestDiscount = val;
+                        bestCode = code;
+                    }
                 }
-            }
+            } catch (e) { continue; }
         }
 
         if (bestDiscount > 0) {
@@ -106,10 +148,12 @@ const Checkout = () => {
                     price: item.price
                 })),
                 shipping_address: address,
-                payment_method: paymentMethod
+                payment_method: paymentMethod,
+                coupon_code: couponCode || null,
+                discount_amount: discount
             };
 
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
             const res = await fetch(`${apiUrl}/api/orders`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -142,25 +186,20 @@ const Checkout = () => {
             return;
         }
 
-        if (paymentMethod === 'Card') {
-            setIsPaymentOpen(true);
-        } else {
-            if (paymentMethod === 'UPI') {
-                const vpa = prompt("Enter UPI ID (e.g. user@upl):"); // Keeping prompt for UPI specifically as requested flow separate, or could simulate
-                if (!vpa) return;
+        if (paymentMethod === 'COD') {
+            if (userCaptcha !== captcha) {
+                setCaptchaError(true);
+                return;
             }
             handlePlaceOrder();
+        } else {
+            // Open modal for both Card AND UPI
+            setIsPaymentOpen(true);
         }
     };
 
     if (!user) return <div className="container">Please login to checkout.</div>;
 
-    // Scroll to top when order is successful
-    useEffect(() => {
-        if (orderSuccess) {
-            window.scrollTo(0, 0);
-        }
-    }, [orderSuccess]);
 
     // Order Success View
     if (orderSuccess) {
@@ -235,7 +274,7 @@ const Checkout = () => {
                                 <span style={{ marginLeft: 'auto', fontSize: '20px' }}>💳</span>
                             </label>
 
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '18px', border: paymentMethod === 'UPI' ? '2px solid var(--primary)' : '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', background: paymentMethod === 'UPI' ? 'var(--surface-hover)' : 'var(--surface)', transition: 'all 0.2s' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '18px', border: paymentMethod === 'UPI' ? '2px solid var(--primary)' : '1px solid var(--border)', borderRadius: '12px', cursor: 'pointer', background: paymentMethod === 'UPI' ? 'var(--surface-hover)' : 'var(--surface)', transition: 'all 0.2s' }}>
                                 <input
                                     type="radio"
                                     name="payment"
@@ -250,7 +289,7 @@ const Checkout = () => {
                                 <span style={{ marginLeft: 'auto', fontSize: '20px' }}>📱</span>
                             </label>
 
-                            <label style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '18px', border: paymentMethod === 'COD' ? '2px solid var(--primary)' : '1px solid #e2e8f0', borderRadius: '12px', cursor: 'pointer', background: paymentMethod === 'COD' ? 'var(--surface-hover)' : 'var(--surface)', transition: 'all 0.2s' }}>
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '18px', border: paymentMethod === 'COD' ? '2px solid var(--primary)' : '1px solid var(--border)', borderRadius: '12px', cursor: 'pointer', background: paymentMethod === 'COD' ? 'var(--surface-hover)' : 'var(--surface)', transition: 'all 0.2s' }}>
                                 <input
                                     type="radio"
                                     name="payment"
@@ -305,7 +344,7 @@ const Checkout = () => {
                                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                                     style={{ flex: 1, padding: '12px', border: '1px solid #cbd5e1', borderRadius: '8px', background: 'var(--surface)', color: 'var(--text-main)' }}
                                 />
-                                <button onClick={handleApplyCoupon} className="btn" style={{ padding: '10px 20px', background: '#0f172a', color: 'white', borderRadius: '8px' }}>Apply</button>
+                                <button onClick={handleApplyCoupon} className="btn" style={{ padding: '10px 20px', background: 'var(--primary)', color: 'white', borderRadius: '8px' }}>Apply</button>
                             </div>
                             <button
                                 onClick={handleAutoApplyCoupon}
@@ -342,6 +381,27 @@ const Checkout = () => {
                             </div>
                         )}
 
+                        {/* COD CAPTCHA */}
+                        {paymentMethod === 'COD' && (
+                            <div style={{ marginBottom: '20px', padding: '15px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '12px' }}>
+                                <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', fontSize: '13px' }}>Verify Order (COD Security)</label>
+                                <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '10px' }}>
+                                    <div style={{ padding: '8px 20px', background: '#334155', color: 'white', fontWeight: 'bold', letterSpacing: '4px', borderRadius: '6px', fontSize: '18px', userSelect: 'none' }}>
+                                        {captcha}
+                                    </div>
+                                    <button onClick={generateCaptcha} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: 'var(--accent)' }} title="Refresh Code">↻</button>
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Enter Code Here"
+                                    value={userCaptcha}
+                                    onChange={(e) => { setUserCaptcha(e.target.value.toUpperCase()); setCaptchaError(false); }}
+                                    style={{ padding: '10px', borderRadius: '8px', border: captchaError ? '1px solid var(--error)' : '1px solid var(--border)', width: '100%', fontSize: '14px' }}
+                                />
+                                {captchaError && <div style={{ color: 'var(--error)', fontSize: '12px', marginTop: '5px' }}>Incorrect code. Please try again.</div>}
+                            </div>
+                        )}
+
                         <button
                             onClick={handleProceed}
                             className="btn btn-primary"
@@ -362,9 +422,11 @@ const Checkout = () => {
                 onClose={() => setIsPaymentOpen(false)}
                 onConfirm={handlePlaceOrder}
                 total={finalTotal}
+                method={paymentMethod}
             />
         </div>
     );
 };
 
 export default Checkout;
+

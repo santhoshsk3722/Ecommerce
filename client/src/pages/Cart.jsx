@@ -27,27 +27,37 @@ const Cart = () => {
             <div style={{ background: 'var(--surface)', padding: '20px', borderRadius: '8px', boxShadow: 'var(--shadow-sm)' }}>
                 <h2 style={{ marginBottom: '20px', color: 'var(--text-main)' }}>My Cart ({cart.length})</h2>
                 {cart.map(item => (
-                    <div key={item.id} style={{ display: 'flex', flexDirection: 'row', gap: '20px', padding: '20px 0', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
-                        <div style={{ width: '100px', height: '100px', flexShrink: 0, background: 'white', padding: '5px', borderRadius: '8px' }}>
+                    <div key={item.uniqueId || item.id} style={{ display: 'flex', flexDirection: 'row', gap: '20px', padding: '20px 0', borderBottom: '1px solid var(--border)', flexWrap: 'wrap' }}>
+                        <div style={{ width: '100px', height: '100px', flexShrink: 0, background: 'var(--surface)', padding: '5px', borderRadius: '8px' }}>
                             <img src={item.image} alt={item.title} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                         </div>
                         <div style={{ flex: 1, minWidth: '200px' }}>
-                            <h3 style={{ fontSize: '16px', fontWeight: '500', color: 'var(--text-main)' }}>{item.title}</h3>
+                            <h3 style={{ fontSize: '16px', fontWeight: '500', color: 'var(--text-main)', marginBottom: '4px' }}>{item.title}</h3>
+                            {/* Display Variants */}
+                            {item.selectedVariants && (
+                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                                    {Object.entries(item.selectedVariants).map(([key, value]) => (
+                                        <span key={key} style={{ marginRight: '10px', background: 'var(--surface-hover)', padding: '2px 6px', borderRadius: '4px' }}>
+                                            {key}: {value}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
                             <div style={{ margin: '10px 0', fontWeight: 'bold', color: 'var(--primary)' }}>${item.price}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                     <button
-                                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                        onClick={() => updateQuantity(item.uniqueId || item.id, item.quantity - 1)}
                                         style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)', cursor: 'pointer' }}
                                     >-</button>
                                     <div style={{ border: '1px solid var(--border)', padding: '5px 15px', borderRadius: '8px', color: 'var(--text-main)' }}>{item.quantity}</div>
                                     <button
-                                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                        onClick={() => updateQuantity(item.uniqueId || item.id, item.quantity + 1)}
                                         style={{ width: '32px', height: '32px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)', cursor: 'pointer' }}
                                     >+</button>
                                 </div>
                                 <button
-                                    onClick={() => removeFromCart(item.id)}
+                                    onClick={() => removeFromCart(item.uniqueId || item.id)}
                                     style={{
                                         fontWeight: '600',
                                         background: 'rgba(239, 68, 68, 0.1)',
@@ -113,3 +123,4 @@ const Cart = () => {
 };
 
 export default Cart;
+

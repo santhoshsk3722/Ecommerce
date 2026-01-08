@@ -2,19 +2,18 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// https://vite.dev/config/
+// https://vitejs.dev/config/
 export default defineConfig({
-  base: '/Ecommerce/',
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'E-Shop Online',
-        short_name: 'E-Shop',
-        description: 'Your favorite online store',
-        theme_color: '#2874f0',
+        name: 'TechOrbit - Modern E-Commerce',
+        short_name: 'TechOrbit',
+        description: 'Experience the future of shopping with TechOrbit.',
+        theme_color: '#ffffff',
         icons: [
           {
             src: 'pwa-192x192.png',
@@ -26,8 +25,31 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png'
           }
-        ]
+        ],
+        start_url: './',
+        display: 'standalone',
+        background_color: '#ffffff',
+        orientation: 'portrait'
       }
     })
   ],
+  server: {
+    host: true, // Allow network access
+    port: 5173,      // Default Vite port
+    strictPort: true,
+    watch: {
+      usePolling: true
+    }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        // manualChunks: {
+        //   'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+        //   'ui-vendor': ['framer-motion', '@stripe/react-stripe-js', '@stripe/stripe-js', 'recharts']
+        // }
+      }
+    },
+    chunkSizeWarningLimit: 1000
+  }
 })

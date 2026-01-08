@@ -67,3 +67,4 @@ export const LoyaltyProvider = ({ children }) => {
         </LoyaltyContext.Provider>
     );
 };
+

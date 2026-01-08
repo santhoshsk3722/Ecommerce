@@ -16,9 +16,9 @@ const AIChatbot = () => {
 
     const suggestedQuestions = [
         "Track my order",
-        "Best laptops under $1000",
-        "Show me headphones",
-        "Go to my cart"
+        "Contact Support",
+        "Return Policy",
+        "Payment Options"
     ];
 
     const scrollToBottom = () => {
@@ -32,7 +32,7 @@ const AIChatbot = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+                const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
                 const response = await fetch(`${apiUrl}/api/products?limit=100`);
                 const data = await response.json();
                 if (data.message === 'success') {
@@ -61,42 +61,55 @@ const AIChatbot = () => {
             );
 
             if (foundProduct) {
-                botResponse = `Yes! We have the ${foundProduct.title} for $${foundProduct.price}. Would you like to see it?`;
+                botResponse = `Yes! We have the ${foundProduct.title} for $${foundProduct.price}. Would you like to check it out now?`;
                 action = () => navigate(`/?search=${encodeURIComponent(foundProduct.title)}`);
             }
             // Intent: Navigation - Cart/Checkout
             else if (lowerMsg.includes('cart') || lowerMsg.includes('basket') || lowerMsg.includes('checkout')) {
-                botResponse = "Taking you to your cart. Don't forget to use your coupons!";
+                botResponse = "Taking you to your cart. Do you have any coupons to apply?";
                 action = () => navigate('/cart');
             }
             // Intent: Navigation - Profile/Account
             else if (lowerMsg.includes('profile') || lowerMsg.includes('account') || lowerMsg.includes('login')) {
-                botResponse = "Heading to your profile settings.";
+                botResponse = "Heading to your profile settings. Need help with updating details?";
                 action = () => navigate('/profile');
             }
             // Intent: Navigation - Orders
             else if (lowerMsg.includes('order') || lowerMsg.includes('track') || lowerMsg.includes('shipment')) {
-                botResponse = "You can track your shipments here.";
+                botResponse = "You can track your shipments here. Is there a specific order you're worried about?";
                 action = () => navigate('/orders');
             }
             // Intent: Product Search - Laptops
             else if (lowerMsg.includes('laptop') || lowerMsg.includes('computer') || lowerMsg.includes('pc')) {
-                botResponse = "Showing top-rated laptops for you.";
+                botResponse = "Showing top-rated laptops for you. Are you looking for gaming or office use?";
                 action = () => navigate('/?category=laptops');
             }
             // Intent: Product Search - Phones
             else if (lowerMsg.includes('phone') || lowerMsg.includes('mobile') || lowerMsg.includes('iphone')) {
-                botResponse = "Latest smartphones coming right up!";
+                botResponse = "Latest smartphones coming right up! Interested in Apple or Android?";
                 action = () => navigate('/?category=smartphones');
             }
             // Intent: Product Search - Audio
             else if (lowerMsg.includes('headphone') || lowerMsg.includes('speaker') || lowerMsg.includes('audio')) {
-                botResponse = "Immerse yourself in sound. Checking Audio gear...";
+                botResponse = "Immerse yourself in sound. Checking Audio gear... Looking for wireless?";
                 action = () => navigate('/?category=audio');
+            }
+            // Intent: Support
+            else if (lowerMsg.includes('support') || lowerMsg.includes('contact') || lowerMsg.includes('help')) {
+                botResponse = "📞 Support: +91 1234 567 890\n📧 Email: support@techorbit.com\n⏰ Mon-Sat, 9 AM - 6 PM\n\nIs there anything urgent I can help with?";
+            }
+            // Intent: Return Policy
+            else if (lowerMsg.includes('return') || lowerMsg.includes('refund') || lowerMsg.includes('exchange')) {
+                botResponse = "🔄 Returns: You can return any product within 7 days. Go to 'My Orders' to initiate. Do you have the Order ID handy?";
+                action = () => navigate('/orders');
+            }
+            // Intent: Payment Methods
+            else if (lowerMsg.includes('payment') || lowerMsg.includes('pay') || lowerMsg.includes('upi')) {
+                botResponse = "💳 We accept Visa/Mastercard, UPI (GPay/PhonePe), and COD. \n\nWould you like to try a test transaction?";
             }
             // Intent: General Greeting
             else if (lowerMsg.includes('hello') || lowerMsg.includes('hi')) {
-                botResponse = "Hello! 👋 I can help you navigate. Try saying 'Go to Cart' or 'Do you have iPhone 15?'.";
+                botResponse = "Hello! 👋 I can help you with Orders, Returns, or finding products. What's on your mind today?";
             }
 
             setMessages(prev => [...prev, { role: 'bot', text: botResponse }]);
@@ -169,20 +182,20 @@ const AIChatbot = () => {
                             right: '30px',
                             width: '350px',
                             height: '550px',
-                            background: 'white',
+                            background: 'var(--surface)',
                             borderRadius: '20px',
                             boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
                             zIndex: 2000,
                             display: 'flex',
                             flexDirection: 'column',
                             overflow: 'hidden',
-                            border: '1px solid rgba(255,255,255,0.5)'
+                            border: '1px solid var(--border)'
                         }}
                     >
                         {/* Header */}
                         <div style={{ background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)', padding: '15px 20px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'white', padding: '2px', overflow: 'hidden' }}>
+                                <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--surface)', padding: '2px', overflow: 'hidden' }}>
                                     <img src={aiAvatar} alt="AI" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                                 </div>
                                 <div>
@@ -194,13 +207,13 @@ const AIChatbot = () => {
                         </div>
 
                         {/* Messages */}
-                        <div style={{ flex: 1, padding: '20px', overflowY: 'auto', background: '#f8fafc', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        <div style={{ flex: 1, padding: '20px', overflowY: 'auto', background: 'var(--background)', display: 'flex', flexDirection: 'column', gap: '15px' }}>
                             {messages.map((msg, idx) => (
                                 <div key={idx} style={{ alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
                                     <div style={{
                                         padding: '12px 16px',
                                         borderRadius: '18px',
-                                        background: msg.role === 'user' ? 'var(--primary)' : 'white',
+                                        background: msg.role === 'user' ? 'var(--accent)' : 'var(--surface-hover)',
                                         color: msg.role === 'user' ? 'white' : 'var(--text-main)',
                                         borderBottomRightRadius: msg.role === 'user' ? '4px' : '18px',
                                         borderBottomLeftRadius: msg.role === 'bot' ? '4px' : '18px',
@@ -216,7 +229,7 @@ const AIChatbot = () => {
                                 </div>
                             ))}
                             {isTyping && (
-                                <div style={{ alignSelf: 'flex-start', background: 'white', padding: '12px 16px', borderRadius: '18px', borderBottomLeftRadius: '4px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+                                <div style={{ alignSelf: 'flex-start', background: 'var(--surface)', padding: '12px 16px', borderRadius: '18px', borderBottomLeftRadius: '4px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', color: 'var(--text-main)', border: '1px solid var(--border)' }}>
                                     <div style={{ display: 'flex', gap: '4px' }}>
                                         <span style={{ width: '6px', height: '6px', background: '#94a3b8', borderRadius: '50%', animation: 'typing 1s infinite 0ms' }}></span>
                                         <span style={{ width: '6px', height: '6px', background: '#94a3b8', borderRadius: '50%', animation: 'typing 1s infinite 333ms' }}></span>
@@ -235,15 +248,15 @@ const AIChatbot = () => {
                                             style={{
                                                 padding: '8px 12px',
                                                 borderRadius: '20px',
-                                                border: '1px solid var(--primary)',
-                                                background: 'rgba(37, 99, 235, 0.05)',
-                                                color: 'var(--primary)',
+                                                border: '1px solid var(--accent)',
+                                                background: 'transparent',
+                                                color: 'var(--text-main)',
                                                 fontSize: '12px',
                                                 cursor: 'pointer',
                                                 transition: 'all 0.2s'
                                             }}
-                                            onMouseEnter={e => { e.target.style.background = 'var(--primary)'; e.target.style.color = 'white'; }}
-                                            onMouseLeave={e => { e.target.style.background = 'rgba(37, 99, 235, 0.05)'; e.target.style.color = 'var(--primary)'; }}
+                                            onMouseEnter={e => { e.target.style.background = 'var(--accent)'; e.target.style.color = 'white'; }}
+                                            onMouseLeave={e => { e.target.style.background = 'transparent'; e.target.style.color = 'var(--text-main)'; }}
                                         >
                                             {q}
                                         </button>
@@ -254,12 +267,12 @@ const AIChatbot = () => {
                         </div>
 
                         {/* Input */}
-                        <form onSubmit={handleSend} style={{ padding: '15px', background: 'white', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <form onSubmit={handleSend} style={{ padding: '15px', background: 'var(--surface)', borderTop: '1px solid var(--border)', display: 'flex', gap: '10px', alignItems: 'center' }}>
                             <input
                                 value={input}
                                 onChange={e => setInput(e.target.value)}
                                 placeholder="Ask something..."
-                                style={{ flex: 1, borderRadius: '24px', border: '1px solid #e2e8f0', padding: '12px 20px', fontSize: '14px', outline: 'none', transition: 'border-color 0.2s' }}
+                                style={{ flex: 1, borderRadius: '24px', border: '1px solid var(--border)', padding: '12px 20px', fontSize: '14px', outline: 'none', transition: 'border-color 0.2s', background: 'var(--surface)', color: 'var(--text-main)' }}
                                 onFocus={e => e.target.style.borderColor = 'var(--primary)'}
                                 onBlur={e => e.target.style.borderColor = '#e2e8f0'}
                             />
@@ -298,3 +311,4 @@ const AIChatbot = () => {
 };
 
 export default AIChatbot;
+

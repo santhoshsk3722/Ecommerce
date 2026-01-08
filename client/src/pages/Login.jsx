@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { motion } from 'framer-motion';
 import GoogleLoginButton from '../components/GoogleLoginButton';
+import emailjs from '@emailjs/browser';
 
 const Login = () => {
     const [isLogin, setIsLogin] = useState(true);
@@ -14,30 +15,102 @@ const Login = () => {
     const navigate = useNavigate();
     const [phoneStep, setPhoneStep] = useState(0);
 
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // --- Email Flow ---
         if (authMethod === 'email') {
-            const endpoint = isLogin ? '/api/login' : '/api/signup';
-            try {
-                const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-                const res = await fetch(`${apiUrl}${endpoint}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-                const data = await res.json();
-                if (data.message === 'success') {
-                    login(data.user);
-                    showToast(`Welcome!`);
-                    navigate(data.user.role === 'seller' ? '/seller' : data.user.role === 'admin' ? '/admin' : '/');
-                } else {
-                    showToast(data.message || 'Error', 'error');
+            // Login Mode: Direct API Call
+            if (isLogin) {
+                try {
+                    const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+                    const res = await fetch(`${apiUrl}/api/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                    const data = await res.json();
+                    if (data.message === 'success') {
+                        login(data.user);
+                        showToast(`Welcome!`);
+                        navigate(data.user.role === 'seller' ? '/seller' : data.user.role === 'admin' ? '/admin' : '/');
+                    } else {
+                        showToast(data.message || 'Error', 'error');
+                    }
+                } catch (err) {
+                    showToast('Connection failed', 'error');
                 }
-            } catch (err) {
-                showToast('Connection failed', 'error');
+                return;
             }
-        } else {
-            // Phone logic
+
+            // Signup Mode: OTP Verification
+            // Step 0: Send OTP
+            if (phoneStep === 0) {
+                const code = Math.floor(1000 + Math.random() * 9000).toString();
+                // Store OTP in formData for verification (in a real app, hash this or use backend)
+                // We'll leverage the 'phone' otp field or a new state. Let's use a temp variable stored in component? 
+                // Better: simple state.
+
+                const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+                const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+                const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+                if (!serviceId || !templateId || !publicKey) {
+                    // Fallback for demo without keys
+                    console.log(`DEMO OTP for ${formData.email}: ${code}`);
+                    showToast(`Demo OTP: ${code} (Check Console)`, 'info');
+                    setFormData(prev => ({ ...prev, generatedOtp: code }));
+                    setPhoneStep(1); // Reusing phoneStep variable for "verification step"
+                    return;
+                }
+
+                showToast('Sending Verification Code...', 'info');
+                try {
+                    await emailjs.send(serviceId, templateId, {
+                        to_name: formData.name,
+                        to_email: formData.email,
+                        otp: code,
+                        message: `Your verification code is ${code}`
+                    }, publicKey);
+
+                    showToast(`OTP sent to ${formData.email}`, 'success');
+                    setFormData(prev => ({ ...prev, generatedOtp: code }));
+                    setPhoneStep(1);
+                } catch (error) {
+                    console.error(error);
+                    showToast('Failed to send OTP. Check logs.', 'error');
+                }
+            }
+            // Step 1: Verify & Signup
+            else {
+                if (formData.otp === formData.generatedOtp) {
+                    try {
+                        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+                        const res = await fetch(`${apiUrl}/api/signup`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ name: formData.name, email: formData.email, password: formData.password })
+                        });
+                        const data = await res.json();
+                        if (data.message === 'success') {
+                            login(data.user);
+                            showToast(`Account Verified! Welcome!`, 'success');
+                            navigate('/');
+                        } else {
+                            showToast(data.message || 'Signup Error', 'error');
+                        }
+                    } catch (err) {
+                        showToast('Connection failed', 'error');
+                    }
+                } else {
+                    showToast('Invalid OTP. Please try again.', 'error');
+                }
+            }
+        }
+        // --- Phone Flow (Legacy Demo) ---
+        else {
             if (phoneStep === 0) {
                 if (formData.phone.length < 10) return showToast('Invalid Phone', 'error');
                 showToast(`OTP sent to ${formData.phone}`);
@@ -58,7 +131,7 @@ const Login = () => {
             <div style={{ flex: 1, background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px', color: 'white' }} className="login-hero">
                 <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
                     <div style={{ fontSize: '48px', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ color: '#fff' }}>Tech</span>
+                        <span style={{ color: 'var(--text-main)' }}>Tech</span>
                         <span style={{ color: '#3b82f6' }}>Orbit</span>
                     </div>
                     <h1 style={{ fontSize: '36px', lineHeight: '1.2', marginBottom: '30px', fontWeight: 'bold' }}>
@@ -90,22 +163,33 @@ const Login = () => {
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         {authMethod === 'email' && (
                             <>
-                                {!isLogin && (
+                                {!isLogin && phoneStep === 0 && (
                                     <input type="text" placeholder="Full Name" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)' }} />
                                 )}
-                                <input type="email" placeholder="Email address" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)' }} />
-                                <input type="password" placeholder="Password" required value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)' }} />
+                                {phoneStep === 0 ? (
+                                    <>
+                                        <input type="email" placeholder="Email address" required value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)' }} />
+                                        <input type="password" placeholder="Password" required value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)' }} />
+                                        <div style={{ textAlign: 'right', marginTop: '-10px' }}>
+                                            <a href="/#/forgot-password" style={{ fontSize: '13px', color: '#3b82f6', textDecoration: 'none' }}>Forgot Password?</a>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <input type="text" placeholder="Enter 4-digit OTP" required value={formData.otp} onChange={e => setFormData({ ...formData, otp: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid var(--border)', textAlign: 'center', letterSpacing: '4px', background: 'var(--surface)', fontSize: '20px' }} />
+                                )}
                             </>
                         )}
 
                         {authMethod === 'phone' && (
                             phoneStep === 0 ?
-                                <input type="tel" placeholder="Phone Number" required value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#f8fafc' }} /> :
-                                <input type="text" placeholder="Enter OTP (1234)" required value={formData.otp} onChange={e => setFormData({ ...formData, otp: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'center', letterSpacing: '4px' }} />
+                                <input type="tel" placeholder="Phone Number" required value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)' }} /> :
+                                <input type="text" placeholder="Enter OTP (1234)" required value={formData.otp} onChange={e => setFormData({ ...formData, otp: e.target.value })} style={{ padding: '15px', borderRadius: '8px', border: '1px solid var(--border)', textAlign: 'center', letterSpacing: '4px', background: 'var(--surface)' }} />
                         )}
 
                         <button className="btn btn-primary" style={{ padding: '15px', marginTop: '10px', fontSize: '16px', borderRadius: '8px' }}>
-                            {authMethod === 'email' ? (isLogin ? 'Sign In' : 'Sign Up') : (phoneStep === 0 ? 'Send Code' : 'Verify')}
+                            {authMethod === 'email' ?
+                                (isLogin ? 'Sign In' : (phoneStep === 1 ? 'Verify & Create Account' : 'Get Verification Code'))
+                                : (phoneStep === 0 ? 'Send Code' : 'Verify')}
                         </button>
                     </form>
 
@@ -135,3 +219,4 @@ const Login = () => {
 };
 
 export default Login;
+

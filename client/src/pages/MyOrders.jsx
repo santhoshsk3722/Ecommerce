@@ -14,7 +14,7 @@ const MyOrders = () => {
 
     useEffect(() => {
         if (!user) return;
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
         fetch(`${apiUrl}/api/orders/${user.id}`)
             .then(res => res.json())
             .then(data => {
@@ -30,7 +30,7 @@ const MyOrders = () => {
         if (!window.confirm('Are you sure you want to cancel this order?')) return;
 
         setCancellingId(orderId);
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
         fetch(`${apiUrl}/api/orders/${orderId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
@@ -63,7 +63,7 @@ const MyOrders = () => {
                             exit={{ opacity: 0 }} // If we allowed deleting from view
                             className="card"
                             style={{
-                                background: 'white',
+                                background: 'var(--surface)',
                                 border: '1px solid var(--border)',
                                 borderRadius: 'var(--radius-lg)',
                                 overflow: 'hidden'
@@ -75,7 +75,7 @@ const MyOrders = () => {
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
                                 padding: '20px',
-                                background: '#f8f9fa',
+                                background: 'var(--surface-hover)',
                                 borderBottom: '1px solid var(--border)'
                             }}>
                                 <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
@@ -126,7 +126,7 @@ const MyOrders = () => {
                                                 padding: '8px 16px',
                                                 border: '1px solid var(--error)',
                                                 color: 'var(--error)',
-                                                background: 'white',
+                                                background: 'var(--surface)',
                                                 borderRadius: '4px',
                                                 cursor: 'pointer',
                                                 fontWeight: '600',
@@ -155,3 +155,4 @@ const MyOrders = () => {
 };
 
 export default MyOrders;
+

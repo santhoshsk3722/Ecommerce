@@ -22,19 +22,33 @@ const VisualSearch = () => {
         if (file) processImage(file);
     };
 
-    const processImage = (file) => {
+    const processImage = async (file) => {
         const reader = new FileReader();
         reader.onload = (e) => setPreview(e.target.result);
         reader.readAsDataURL(file);
         setScanning(true);
 
-        // Simulate AI Analysis
-        setTimeout(() => {
-            // Mock result: Randomly choose a category or keyword
-            const keywords = ['shoes', 'watch', 'camera', 'laptop'];
-            const randomKeyword = keywords[Math.floor(Math.random() * keywords.length)];
-            navigate(`/?search=${randomKeyword}`);
-        }, 3000);
+        try {
+            // In a real app, successful upload involves sending FormData
+            // const formData = new FormData();
+            // formData.append('image', file);
+
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+            const res = await fetch(`${apiUrl}/api/search/visual`, {
+                method: 'POST',
+                // body: formData 
+            });
+
+            const data = await res.json();
+
+            if (data.message === 'success') {
+                navigate(`/?search=${data.keyword}`);
+            }
+        } catch (error) {
+            console.error("Visual search failed:", error);
+            alert("Failed to analyze image. Please try again.");
+            setScanning(false);
+        }
     };
 
     return (
@@ -122,3 +136,4 @@ const VisualSearch = () => {
 };
 
 export default VisualSearch;
+

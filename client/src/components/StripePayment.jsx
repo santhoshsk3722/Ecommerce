@@ -66,32 +66,55 @@ const CheckoutForm = ({ amount, onSuccess, onClose }) => {
     );
 };
 
+
 const StripePayment = ({ amount, onSuccess, onClose }) => {
     const [clientSecret, setClientSecret] = useState('');
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         // Create PaymentIntent as soon as the page loads
         if (amount > 0) {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
             fetch(`${apiUrl}/api/create-payment-intent`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ amount }),
             })
-                .then((res) => res.json())
-                .then((data) => setClientSecret(data.clientSecret));
+                .then(async (res) => {
+                    if (!res.ok) {
+                        const errorData = await res.json().catch(() => ({}));
+                        throw new Error(errorData.error || 'Payment service unavailable.');
+                    }
+                    return res.json();
+                })
+                .then((data) => {
+                    if (data.error) throw new Error(data.error);
+                    setClientSecret(data.clientSecret);
+                })
+                .catch(err => setError(err.message));
         }
     }, [amount]);
 
     const options = {
         clientSecret,
         appearance: {
-            theme: 'night', // or 'stripe' based on preference, 'night' fits dark mode better or 'auto'
+            theme: 'night',
             variables: {
                 colorPrimary: '#2563eb',
             },
         },
     };
+
+    if (error) {
+        return (
+            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--error)' }}>
+                <div style={{ marginBottom: '10px' }}>⚠️ {error}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                    (Hint: Did you restart the server after adding Stripe keys?)
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div style={{ minHeight: '300px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
@@ -100,10 +123,11 @@ const StripePayment = ({ amount, onSuccess, onClose }) => {
                     <CheckoutForm amount={amount} onSuccess={onSuccess} onClose={onClose} />
                 </Elements>
             ) : (
-                <div style={{ textAlign: 'center' }}>Loading Secure Payment...</div>
+                <div style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>Loading Secure Payment...</div>
             )}
         </div>
     );
 };
 
 export default StripePayment;
+

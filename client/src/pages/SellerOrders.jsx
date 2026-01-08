@@ -12,7 +12,7 @@ const SellerOrders = () => {
 
     useEffect(() => {
         if (user && user.role === 'seller') {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
             fetch(`${apiUrl}/api/orders/seller/${user.id}`)
                 .then(res => res.json())
                 .then(data => {
@@ -25,7 +25,7 @@ const SellerOrders = () => {
     }, [user]);
 
     const handleUpdateStatus = (orderId, newStatus) => {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
         fetch(`${apiUrl}/api/orders/${orderId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
@@ -40,38 +40,51 @@ const SellerOrders = () => {
             });
     };
 
-    const handleAddTracking = (orderId) => {
-        const trackingId = prompt("Enter Tracking ID:");
-        const courierName = prompt("Enter Courier Name:");
-        if (trackingId && courierName) {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-            fetch(`${apiUrl}/api/orders/${orderId}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tracking_id: trackingId, courier_name: courierName, status: 'Shipped' })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.message === 'updated') {
-                        showToast('Tracking info added & marked Shipped', 'success');
+    const [trackingModal, setTrackingModal] = useState({ show: false, orderId: null, trackingId: '', courier: '' });
 
-                        // Find the order to get customer details
-                        const order = orders.find(o => o.id === orderId);
-                        if (order && order.customer_email) {
-                            sendOrderShippedEmail(orderId, order.customer_name, order.customer_email, trackingId, courierName);
-                        }
+    const openShipModal = (orderId) => {
+        setTrackingModal({ show: true, orderId: orderId, trackingId: '', courier: '' });
+    };
 
-                        setOrders(orders.map(o => o.id === orderId ? { ...o, tracking_id: trackingId, courier_name: courierName, status: 'Shipped' } : o));
-                    }
-                });
+    const closeShipModal = () => {
+        setTrackingModal({ show: false, orderId: null, trackingId: '', courier: '' });
+    };
+
+    const handleShipOrder = () => {
+        const { orderId, trackingId, courier } = trackingModal;
+        if (!trackingId || !courier) {
+            showToast('Please enter both Tracking ID and Courier Name', 'error');
+            return;
         }
+
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+        fetch(`${apiUrl}/api/orders/${orderId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tracking_id: trackingId, courier_name: courier, status: 'Shipped' })
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.message === 'updated') {
+                    showToast('Tracking info added & marked Shipped', 'success');
+
+                    // Find the order to get customer details
+                    const order = orders.find(o => o.id === orderId);
+                    if (order && order.customer_email) {
+                        sendOrderShippedEmail(orderId, order.customer_name, order.customer_email, trackingId, courier);
+                    }
+
+                    setOrders(orders.map(o => o.id === orderId ? { ...o, tracking_id: trackingId, courier_name: courier, status: 'Shipped' } : o));
+                    closeShipModal();
+                }
+            });
     };
 
     if (loading) return <div className="container">Loading...</div>;
     if (!user || user.role !== 'seller') return <div className="container">Access Denied</div>;
 
     return (
-        <div className="container" style={{ paddingBottom: '50px' }}>
+        <div className="container" style={{ paddingBottom: '50px', position: 'relative' }}>
             <h2 style={{ marginBottom: '30px', color: 'var(--text-main)' }}>Manage Orders</h2>
 
             {orders.length === 0 ? (
@@ -123,7 +136,7 @@ const SellerOrders = () => {
                             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', borderTop: '1px solid var(--border)', paddingTop: '15px' }}>
                                 {order.status === 'Processing' && (
                                     <button
-                                        onClick={() => handleAddTracking(order.id)}
+                                        onClick={() => openShipModal(order.id)}
                                         className="btn btn-primary"
                                         style={{ fontSize: '13px', padding: '8px 15px' }}
                                     >
@@ -147,8 +160,54 @@ const SellerOrders = () => {
                     ))}
                 </div>
             )}
+
+            {/* Shipping Modal */}
+            {trackingModal.show && (
+                <div style={{
+                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000
+                }}>
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        style={{
+                            background: 'var(--surface)', padding: '30px', borderRadius: '12px',
+                            width: '400px', boxShadow: 'var(--shadow-lg)', border: '1px solid var(--border)'
+                        }}
+                    >
+                        <h3 style={{ marginBottom: '20px', color: 'var(--text-main)' }}>Ship Order #{trackingModal.orderId}</h3>
+
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Courier Name</label>
+                            <input
+                                autoFocus
+                                placeholder="e.g. FedEx, DHL, BlueDart"
+                                value={trackingModal.courier}
+                                onChange={e => setTrackingModal({ ...trackingModal, courier: e.target.value })}
+                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)' }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '25px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Tracking ID</label>
+                            <input
+                                placeholder="e.g. TRK123456789"
+                                value={trackingModal.trackingId}
+                                onChange={e => setTrackingModal({ ...trackingModal, trackingId: e.target.value })}
+                                style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--surface-hover)', color: 'var(--text-main)' }}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                            <button onClick={handleShipOrder} className="btn btn-primary" style={{ flex: 1, padding: '10px' }}>Confirm Shipment</button>
+                            <button onClick={closeShipModal} className="btn btn-secondary" style={{ flex: 1, padding: '10px' }}>Cancel</button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 };
 
 export default SellerOrders;
+

@@ -527,3 +527,70 @@ select:focus {
     margin-bottom: 5px !important;
   }
 }
+
+/* Mobile Bottom Navigation */
+.bottom-nav {
+  display: none;
+  /* Hidden on desktop */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 10px 0;
+  z-index: 1000;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
+}
+
+.bottom-nav .nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: 10px;
+  width: 25%;
+  transition: color 0.3s;
+}
+
+.bottom-nav .nav-item.active {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.bottom-nav .icon {
+  font-size: 22px;
+  margin-bottom: 2px;
+}
+
+.bottom-nav .badge {
+  position: absolute;
+  top: -5px;
+  right: -8px;
+  background: var(--error);
+  color: white;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* Mobile Media Query */
+@media (max-width: 768px) {
+  .bottom-nav {
+    display: flex;
+  }
+
+  /* Add padding to body so content isn't hidden behind nav */
+  body {
+    padding-bottom: 70px;
+  }
+}

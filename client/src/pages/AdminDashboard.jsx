@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
-import { SalesByCategoryChart, TopProductsTable } from '../components/AdminCharts';
+import { SalesByCategoryChart } from '../components/AdminCharts';
+import AdminUsersTable from '../components/AdminUsersTable';
 
 const AdminDashboard = () => {
     const { user } = useAuth();
@@ -13,10 +14,10 @@ const AdminDashboard = () => {
     useEffect(() => {
         if (user && user.role === 'admin') {
             setLoading(true);
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
             Promise.all([
                 fetch(`${apiUrl}/api/stats`).then(res => res.json()),
-                fetch(`${apiUrl}/api/users`).then(res => res.json()),
+                fetch(`${apiUrl}/api/admin/users`).then(res => res.json()),
                 fetch(`${apiUrl}/api/admin/analytics`).then(res => res.json())
             ]).then(([statsData, usersData, analyticsData]) => {
                 if (statsData.message === 'success') setStats(statsData.data);
@@ -40,19 +41,22 @@ const AdminDashboard = () => {
 
             {/* Top Stats Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-                <StatsCard title="Total Revenue" value={`$${stats.revenue?.toLocaleString()}`} change="+12.5%" color="#2563eb" icon="💰" />
-                <StatsCard title="Total Orders" value={stats.orders} change="+8.2%" color="#10b981" icon="📦" />
-                <StatsCard title="Active Users" value={stats.users} change="+5.1%" color="#f59e0b" icon="👥" />
-                <StatsCard title="Products" value={stats.products} change="+2.3%" color="#8b5cf6" icon="🛍️" />
+                <StatsCard title="Total Revenue" value={`$${stats.revenue?.toLocaleString()}`} change={stats.revenueChange || "0%"} color="#2563eb" icon="💰" />
+                <StatsCard title="Total Orders" value={stats.orders} change={stats.ordersChange || "0%"} color="#10b981" icon="📦" />
+                <StatsCard title="Active Users" value={stats.users} change={stats.usersChange || "0%"} color="#f59e0b" icon="👥" />
+                <StatsCard title="Products" value={stats.products} change={stats.productsChange || "0%"} color="#8b5cf6" icon="🛍️" />
             </div>
 
             {/* Charts Section */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px', marginBottom: '30px' }}>
 
                 {/* Sales By Category Chart */}
-                <div className="card" style={{ padding: '20px', height: '350px' }}>
+                {/* Sales By Category Chart */}
+                <div className="card" style={{ padding: '20px', height: '350px', display: 'flex', flexDirection: 'column' }}>
                     <h3 style={{ fontSize: '16px', marginBottom: '20px', color: 'var(--text-secondary)' }}>Sales by Category</h3>
-                    <SalesByCategoryChart data={analytics.salesByCategory} />
+                    <div style={{ flex: 1, minHeight: 0 }}>
+                        <SalesByCategoryChart data={analytics.salesByCategory} />
+                    </div>
                 </div>
 
                 {/* Revenue Trend (Visual Only) */}
@@ -84,79 +88,31 @@ const AdminDashboard = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '20px' }}>
 
                 {/* Top Products Table */}
-                <div className="card" style={{ overflow: 'hidden' }}>
-                    <div style={{ padding: '20px', borderBottom: '1px solid var(--border)' }}>
-                        <h3 style={{ margin: 0, fontSize: '18px' }}>Top Selling Products</h3>
-                    </div>
-                    <TopProductsTable data={analytics.topProducts} />
-                </div>
+                {/* Top Products Table Removed as per user request */}
 
                 {/* Users Table */}
-                <div className="card" style={{ overflow: 'hidden' }}>
-                    <div style={{ padding: '20px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3 style={{ margin: 0, fontSize: '18px' }}>Recent Users</h3>
-                    </div>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                        <thead style={{ background: 'var(--surface-hover)', color: 'var(--text-secondary)' }}>
-                            <tr>
-                                <th style={{ padding: '15px', textAlign: 'left' }}>User</th>
-                                <th style={{ padding: '15px', textAlign: 'left' }}>Role</th>
-                                <th style={{ padding: '15px', textAlign: 'left' }}>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {usersList.slice(0, 5).map(u => (
-                                <tr key={u.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                                    <td style={{ padding: '15px' }}>
-                                        <div style={{ fontWeight: '600', color: 'var(--text-main)' }}>{u.name}</div>
-                                        <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{u.email}</div>
-                                    </td>
-                                    <td style={{ padding: '15px' }}>
-                                        <span style={{ fontSize: '11px', padding: '4px 10px', borderRadius: '12px', background: u.role === 'admin' ? 'var(--surface-active)' : 'var(--surface-hover)', color: u.role === 'admin' ? 'var(--accent)' : 'var(--text-secondary)' }}>
-                                            {u.role.toUpperCase()}
-                                        </span>
-                                    </td>
-                                    <td style={{ padding: '15px' }}>
-                                        <button
-                                            onClick={() => {
-                                                if (window.confirm(`Delete user ${u.name}?`)) {
-                                                    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-                                                    fetch(`${apiUrl}/api/users/${u.id}`, { method: 'DELETE' })
-                                                        .then(res => res.json())
-                                                        .then(data => {
-                                                            if (data.message === 'deleted') {
-                                                                setUsersList(prev => prev.filter(user => user.id !== u.id));
-                                                            }
-                                                        });
-                                                }
-                                            }}
-                                            style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#dc2626' }}
-                                        >
-                                            🗑️
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <AdminUsersTable users={usersList} setUsers={setUsersList} />
             </div>
 
         </div>
     );
 };
 
-const StatsCard = ({ title, value, change, color, icon }) => (
-    <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-        <div style={{ width: '50px', height: '50px', borderRadius: '12px', background: `${color}20`, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
-            {icon}
+const StatsCard = ({ title, value, change, color, icon }) => {
+    const isNegative = String(change).includes('-');
+    return (
+        <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <div style={{ width: '50px', height: '50px', borderRadius: '12px', background: `${color}20`, color: color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>
+                {icon}
+            </div>
+            <div>
+                <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>{title}</div>
+                <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-main)' }}>{value}</div>
+                <div style={{ fontSize: '12px', color: isNegative ? 'var(--error)' : 'var(--success)', fontWeight: '600' }}>{change} from last month</div>
+            </div>
         </div>
-        <div>
-            <div style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>{title}</div>
-            <div style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-main)' }}>{value}</div>
-            <div style={{ fontSize: '12px', color: 'var(--success)', fontWeight: '600' }}>{change} from last month</div>
-        </div>
-    </div>
-);
+    );
+};
 
 export default AdminDashboard;
+

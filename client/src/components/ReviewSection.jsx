@@ -1,133 +1,238 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
-
-const StarRating = ({ rating, setRating, editable = false }) => {
-    return (
-        <div style={{ display: 'flex' }}>
-            {[1, 2, 3, 4, 5].map(star => (
-                <span
-                    key={star}
-                    onClick={() => editable && setRating(star)}
-                    style={{
-                        cursor: editable ? 'pointer' : 'default',
-                        fontSize: '20px',
-                        color: star <= rating ? '#388e3c' : '#ccc',
-                        marginRight: '2px'
-                    }}
-                >
-                    ★
-                </span>
-            ))}
-        </div>
-    );
-};
+import { motion } from 'framer-motion';
 
 const ReviewSection = ({ productId }) => {
     const { user } = useAuth();
-    const { showToast } = useToast();
     const [reviews, setReviews] = useState([]);
-    const [newRating, setNewRating] = useState(5);
-    const [comment, setComment] = useState('');
     const [loading, setLoading] = useState(true);
+    const [rating, setRating] = useState(5);
+    const [comment, setComment] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+
+    const hasReviewed = user && reviews.some(r => r.user_id === user.id);
+
+    // Populate form if user wants to edit
+    const handleEditClick = () => {
+        const myReview = reviews.find(r => r.user_id === user.id);
+        if (myReview) {
+            setRating(myReview.rating);
+            setComment(myReview.comment);
+            setIsEditing(true);
+        }
+    };
+
+    useEffect(() => {
+        if (productId) fetchReviews();
+    }, [productId]);
 
     const fetchReviews = () => {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
         fetch(`${apiUrl}/api/reviews/${productId}`)
             .then(res => res.json())
             .then(data => {
-                if (data.message === 'success') setReviews(data.data);
+                if (data.message === 'success') {
+                    setReviews(data.data);
+                }
                 setLoading(false);
             });
     };
 
-    useEffect(() => {
-        fetchReviews();
-    }, [productId]);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!user) {
+            alert("Please login to write a review");
+            return;
+        }
+        setSubmitting(true);
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 
-    const submitReview = () => {
-        if (!user) return showToast('Please login to review', 'error');
-
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        fetch(`${apiUrl}/api/reviews`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: user.id, product_id: productId, rating: newRating, comment })
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.message === 'success') {
-                    showToast('Review submitted!');
-                    setComment('');
-                    fetchReviews(); // Refresh
-                } else {
-                    showToast('Failed to submit review', 'error');
-                }
+        try {
+            const method = isEditing ? 'PUT' : 'POST';
+            const res = await fetch(`${apiUrl}/api/reviews`, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: user.id,
+                    product_id: productId,
+                    rating: parseInt(rating),
+                    comment
+                })
             });
+            const data = await res.json();
+            if (data.message === 'success') {
+                setComment('');
+                setIsEditing(false); // Reset edit mode
+                fetchReviews(); // Refresh list
+            } else {
+                alert(data.error || "Something went wrong");
+            }
+        } catch (err) {
+            console.error("Failed to post review", err);
+        }
+        setSubmitting(false);
     };
 
+    const averageRating = reviews.length
+        ? (reviews.reduce((acc, cur) => acc + cur.rating, 0) / reviews.length).toFixed(1)
+        : 0;
+
+
+
     return (
-        <div style={{ padding: '20px', background: 'white', border: '1px solid #e0e0e0', borderRadius: '4px', marginTop: '20px' }}>
-            <h3 style={{ marginBottom: '20px' }}>Ratings & Reviews</h3>
+        <div style={{ marginTop: '50px', paddingTop: '40px', borderTop: '1px solid var(--border)' }}>
+            <h3 style={{ fontSize: '24px', marginBottom: '30px' }}>Customer Reviews</h3>
 
-            {reviews.length > 0 && (
-                <div style={{ padding: '15px', background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', border: '1px solid #bbf7d0', borderRadius: '8px', marginBottom: '25px', display: 'flex', gap: '15px' }}>
-                    <div style={{ fontSize: '24px' }}>🤖</div>
-                    <div>
-                        <div style={{ fontWeight: 'bold', color: '#15803d', marginBottom: '5px' }}>AI Verdict</div>
-                        <p style={{ margin: 0, fontSize: '13px', color: '#166534', lineHeight: '1.5' }}>
-                            {(() => {
-                                const avg = reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length;
-                                if (avg >= 4.5) return "Exceptional choice! Buyers are extremely satisfied with the quality and performance. A top-rated pick.";
-                                if (avg >= 4) return "Great buy! Most users praise the value for money, though a few mentioned minor shipping delays.";
-                                if (avg >= 3) return "Decent product. It meets expectations for the price, but read recent reviews for specific concerns.";
-                                return "Mixed feedback. Some users reported issues, so we recommend checking the detailed reviews below before purchasing.";
-                            })()}
-                        </p>
+            <div className="responsive-grid-reviews" style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '40px' }}>
+
+                {/* Visual Report */}
+                <div style={{ background: 'var(--surface-hover)', padding: '30px', borderRadius: '16px', height: 'fit-content' }}>
+                    <div style={{ fontSize: '48px', fontWeight: 'bold', color: 'var(--text-main)', lineHeight: 1 }}>
+                        {averageRating}
+                        <span style={{ fontSize: '20px', color: 'var(--text-secondary)', marginLeft: '10px' }}>/ 5</span>
                     </div>
-                </div>
-            )}
+                    <div style={{ color: 'var(--warning)', fontSize: '20px', margin: '10px 0' }}>
+                        {'★'.repeat(Math.round(averageRating)) + '☆'.repeat(5 - Math.round(averageRating))}
+                    </div>
+                    <p style={{ color: 'var(--text-secondary)' }}>Based on {reviews.length} reviews</p>
 
-            {/* Reviews List */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '30px' }}>
-                {reviews.length === 0 ? <div>No reviews yet. Be the first to review!</div> : null}
-                {reviews.map(review => (
-                    <div key={review.id} style={{ borderBottom: '1px solid #f0f0f0', paddingBottom: '15px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
-                            <div style={{ background: review.rating >= 4 ? '#388e3c' : '#ff9f00', color: 'white', padding: '2px 5px', borderRadius: '4px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                                {review.rating} ★
+                    {/* Add Review Form */}
+                    {(user && !hasReviewed) || isEditing ? (
+                        <form onSubmit={handleSubmit} style={{ marginTop: '30px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+                            <h4 style={{ marginBottom: '15px' }}>{isEditing ? 'Update your Review' : 'Write a Review'}</h4>
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px' }}>Rating</label>
+                                <div style={{ display: 'flex', gap: '5px' }}>
+                                    {[1, 2, 3, 4, 5].map(star => (
+                                        <span
+                                            key={star}
+                                            onClick={() => setRating(star)}
+                                            style={{
+                                                cursor: 'pointer',
+                                                fontSize: '24px',
+                                                color: star <= rating ? 'var(--warning)' : '#cbd5e1'
+                                            }}
+                                        >
+                                            ★
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
-                            <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{review.comment}</div>
+                            <textarea
+                                value={comment}
+                                onChange={(e) => setComment(e.target.value)}
+                                placeholder="Share your thoughts..."
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    borderRadius: '8px',
+                                    border: '1px solid var(--border)',
+                                    marginBottom: '15px',
+                                    background: 'var(--surface)',
+                                    color: 'var(--text-main)'
+                                }}
+                                rows="3"
+                                required
+                            />
+                            <button
+                                type="submit"
+                                disabled={submitting}
+                                className="btn btn-primary"
+                                style={{ width: '100%', padding: '10px' }}
+                            >
+                                {submitting ? 'Submitting...' : (isEditing ? 'Update Review' : 'Post Review')}
+                            </button>
+                            {isEditing && (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditing(false)}
+                                    style={{ width: '100%', marginTop: '10px', padding: '10px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                                >
+                                    Cancel
+                                </button>
+                            )}
+                        </form>
+                    ) : hasReviewed && !isEditing ? (
+                        <div style={{ marginTop: '30px', padding: '15px', background: '#ecfdf5', color: '#047857', borderRadius: '8px', textAlign: 'center', border: '1px solid #a7f3d0' }}>
+                            <div>✅ You have already reviewed this product.</div>
+                            <button
+                                onClick={handleEditClick}
+                                style={{
+                                    marginTop: '10px',
+                                    background: 'transparent',
+                                    border: '1px solid #047857',
+                                    color: '#047857',
+                                    padding: '5px 15px',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '12px',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                Edit Review
+                            </button>
                         </div>
-                        <div style={{ color: '#878787', fontSize: '12px', marginTop: '5px' }}>
-                            {review.user_name} <span style={{ margin: '0 5px' }}>•</span> {new Date(review.date).toLocaleDateString()}
+                    ) : (
+                        <div style={{ marginTop: '20px', padding: '15px', background: 'var(--surface)', borderRadius: '8px', textAlign: 'center' }}>
+                            <a href="/#/login" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>Login</a> to write a review.
                         </div>
-                    </div>
-                ))}
-            </div>
+                    )}
+                </div>
 
-            {/* Add Review Form */}
-            {user ? (
-                <div style={{ borderTop: '1px solid #e0e0e0', paddingTop: '20px' }}>
-                    <h4>Rate this product</h4>
-                    <div style={{ margin: '10px 0' }}>
-                        <StarRating rating={newRating} setRating={setNewRating} editable={true} />
-                    </div>
-                    <textarea
-                        placeholder="Write a review..."
-                        value={comment}
-                        onChange={e => setComment(e.target.value)}
-                        style={{ width: '100%', padding: '10px', border: '1px solid #ccc', borderRadius: '4px', minHeight: '80px', marginBottom: '10px' }}
-                    />
-                    <button onClick={submitReview} className="btn btn-primary" style={{ padding: '10px 20px' }}>Submit Review</button>
+                {/* Review List */}
+                <div>
+                    {loading ? (
+                        <p>Loading reviews...</p>
+                    ) : reviews.length === 0 ? (
+                        <div style={{ padding: '40px', textAlign: 'center', background: 'var(--surface)', borderRadius: '12px' }}>
+                            <p style={{ color: 'var(--text-secondary)' }}>No reviews yet. Be the first!</p>
+                        </div>
+                    ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                            {reviews.map(review => (
+                                <motion.div
+                                    key={review.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    style={{
+                                        padding: '20px',
+                                        background: 'var(--surface)',
+                                        borderRadius: '12px',
+                                        border: '1px solid var(--border)'
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <div style={{
+                                                width: '32px', height: '32px',
+                                                borderRadius: '50%',
+                                                background: 'var(--primary-gradient)',
+                                                color: 'white',
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                fontWeight: 'bold', fontSize: '12px'
+                                            }}>
+                                                {review.user_name ? review.user_name.charAt(0).toUpperCase() : 'U'}
+                                            </div>
+                                            <strong>{review.user_name}</strong>
+                                        </div>
+                                        <div style={{ color: 'var(--warning)', fontSize: '14px' }}>
+                                            {'★'.repeat(review.rating) + '☆'.repeat(5 - review.rating)}
+                                        </div>
+                                    </div>
+                                    <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, margin: '10px 0' }}>{review.comment}</p>
+                                    <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>
+                                        {new Date(review.date).toLocaleDateString()}
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
+                    )}
                 </div>
-            ) : (
-                <div style={{ borderTop: '1px solid #e0e0e0', paddingTop: '20px' }}>
-                    Please login to rate and review.
-                </div>
-            )}
-        </div>
+            </div>
+        </div >
     );
 };
 
 export default ReviewSection;
+

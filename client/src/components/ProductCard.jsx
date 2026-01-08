@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { motion } from 'framer-motion';
 import defaultProductImg from '../assets/default-product.png';
+import LazyImage from './LazyImage';
 
 const ProductCard = ({ product }) => {
     const { user } = useAuth();
@@ -14,7 +15,7 @@ const ProductCard = ({ product }) => {
         e.preventDefault();
         if (!user) return showToast('Login to add to wishlist');
 
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
         fetch(`${apiUrl}/api/wishlist`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -58,7 +59,11 @@ const ProductCard = ({ product }) => {
                 </motion.button>
 
                 <div className="product-image-container">
-                    <img src={product.image || defaultProductImg} onError={(e) => { e.target.onerror = null; e.target.src = defaultProductImg; }} alt={product.title} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', transition: 'transform 0.3s' }} />
+                    <LazyImage
+                        src={product.image}
+                        alt={product.title}
+                        style={{ height: '100%', width: '100%' }}
+                    />
                 </div>
 
                 <div className="product-info-container">
@@ -82,3 +87,4 @@ const ProductCard = ({ product }) => {
 };
 
 export default ProductCard;
+

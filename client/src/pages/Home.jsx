@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import ProductCard from '../components/ProductCard';
 import HeroSlider from '../components/HeroSlider';
 import PageTransition from '../components/PageTransition';
@@ -11,16 +12,27 @@ const Home = () => {
     const search = searchParams.get('search') || '';
     const category = searchParams.get('category') || '';
     const [page, setPage] = useState(1);
+
     const limit = 12; // Items per page
 
+    // Feature 7: Advanced Filters State
+    const [sortBy, setSortBy] = useState('');
+    const [priceRange, setPriceRange] = useState({ min: 0, max: 2000 });
+    const [showFilters, setShowFilters] = useState(false);
+
     useEffect(() => {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
         let url = `${apiUrl}/api/products`;
         const params = new URLSearchParams();
         if (search) params.append('search', search);
         if (category) params.append('category', category);
         params.append('page', page);
         params.append('limit', limit);
+
+        // Advanced Filters
+        if (sortBy) params.append('sortBy', sortBy);
+        if (priceRange.min > 0) params.append('minPrice', priceRange.min);
+        if (priceRange.max < 2000) params.append('maxPrice', priceRange.max); // 2000 is default max
 
         if (params.toString()) url += `?${params.toString()}`;
 
@@ -29,14 +41,14 @@ const Home = () => {
             .then(data => {
                 if (data.message === 'success') setProducts(data.data);
             });
-    }, [search, category, page]);
+    }, [search, category, page, sortBy, priceRange.min, priceRange.max]); // Re-fetch on filter change
 
     const [categories, setCategories] = useState(["All"]);
     const [recommendedProducts, setRecommendedProducts] = useState([]);
 
     useEffect(() => {
         // Fetch Categories
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
         fetch(`${apiUrl}/api/categories`)
             .then(res => res.json())
             .then(data => {
@@ -79,6 +91,10 @@ const Home = () => {
 
     return (
         <PageTransition>
+            <Helmet>
+                <title>TechOrbit - Electronics, Fashion & More</title>
+                <meta name="description" content="Shop the best electronics, fashion, and home goods at TechOrbit. Fast shipping and great deals!" />
+            </Helmet>
             {/* Hero Section */}
             {!search && !category && <HeroSlider />}
 
@@ -122,6 +138,67 @@ const Home = () => {
                         </button>
                     ))}
                 </div>
+
+                {/* --- Advanced Filters & Sort Controls --- */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
+                    <button
+                        onClick={() => setShowFilters(!showFilters)}
+                        className="btn btn-secondary"
+                        style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                    >
+                        <span>⚙️</span> {showFilters ? 'Hide Filters' : 'Show Filters'}
+                    </button>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)' }}>Sort By:</span>
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            style={{ padding: '8px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-main)' }}
+                        >
+                            <option value="">Default</option>
+                            <option value="price_asc">Price: Low to High</option>
+                            <option value="price_desc">Price: High to Low</option>
+                            <option value="newest">Newest Arrivals</option>
+                        </select>
+                    </div>
+                </div>
+
+                {/* Collapsible Filter Panel */}
+                {showFilters && (
+                    <div style={{
+                        background: 'var(--surface-hover)',
+                        padding: '20px',
+                        borderRadius: '12px',
+                        marginBottom: '30px',
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: '20px',
+                        border: '1px solid var(--border)'
+                    }}>
+                        <div>
+                            <h4 style={{ margin: '0 0 10px 0', fontSize: '14px' }}>Price Range</h4>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <input
+                                    type="number"
+                                    placeholder="Min"
+                                    value={priceRange.min}
+                                    onChange={(e) => setPriceRange({ ...priceRange, min: Number(e.target.value) })}
+                                    style={{ width: '80px', padding: '8px', borderRadius: '6px', border: '1px solid var(--border)' }}
+                                />
+                                <span>-</span>
+                                <input
+                                    type="number"
+                                    placeholder="Max"
+                                    value={priceRange.max}
+                                    onChange={(e) => setPriceRange({ ...priceRange, max: Number(e.target.value) })}
+                                    style={{ width: '80px', padding: '8px', borderRadius: '6px', border: '1px solid var(--border)' }}
+                                />
+                            </div>
+                        </div>
+                        {/* Future filters can go here (Ratings, Brands, etc.) */}
+                    </div>
+                )}
 
                 {/* Product Grid */}
                 <div>
@@ -167,3 +244,4 @@ const Home = () => {
 };
 
 export default Home;
+
