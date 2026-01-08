@@ -79,8 +79,11 @@ const Login = () => {
                     setFormData(prev => ({ ...prev, generatedOtp: code }));
                     setPhoneStep(1);
                 } catch (error) {
-                    console.error(error);
-                    showToast('Failed to send OTP. Check logs.', 'error');
+                    console.error("EmailJS Failed, falling back to Demo:", error);
+                    // Fallback to Demo Mode automatically
+                    showToast(`Demo OTP: ${code} (Email Failed)`, 'info');
+                    setFormData(prev => ({ ...prev, generatedOtp: code }));
+                    setPhoneStep(1);
                 }
             }
             // Step 1: Verify & Signup

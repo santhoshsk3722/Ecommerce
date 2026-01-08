@@ -634,6 +634,15 @@ app.patch('/api/orders/:id', (req, res) => {
 });
 
 
+// Get User Orders (Alias for compatibility)
+app.get('/api/orders/user/:userId', (req, res) => {
+    const sql = "SELECT * FROM orders WHERE user_id = ? ORDER BY date DESC";
+    db.all(sql, [req.params.userId], (err, rows) => {
+        if (err) return res.status(400).json({ "error": err.message });
+        res.json({ "message": "success", "data": rows });
+    });
+});
+
 // Get User Orders
 app.get('/api/orders/:userId', (req, res) => {
     const sql = "SELECT * FROM orders WHERE user_id = ? ORDER BY date DESC";
