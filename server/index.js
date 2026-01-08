@@ -8,6 +8,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
+app.set('trust proxy', 1); // Required for Render/Vercel behind load balancers
 const PORT = process.env.PORT || 5000;
 
 // Security Middleware
