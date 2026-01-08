@@ -161,7 +161,8 @@ app.post('/api/login', (req, res) => {
                     address: row.address,
                     city: row.city,
                     zip: row.zip,
-                    country: row.country
+                    country: row.country,
+                    avatar: row.avatar // Include avatar in response
                 }
             });
         } else {
@@ -197,7 +198,16 @@ app.post('/api/google-login', (req, res) => {
         if (err) return res.status(400).json({ "error": err.message });
 
         if (row) {
-            // User exists, log them in
+            // User exists. Check if they have an avatar.
+            let userAvatar = row.avatar;
+
+            // If DB avatar is empty but Google provides one, update it!
+            if (!userAvatar && req.body.picture) {
+                userAvatar = req.body.picture;
+                db.run("UPDATE users SET avatar = ? WHERE id = ?", [userAvatar, row.id]);
+            }
+
+            // Log them in
             res.json({
                 "message": "success",
                 "user": {
@@ -208,20 +218,29 @@ app.post('/api/google-login', (req, res) => {
                     address: row.address,
                     city: row.city,
                     zip: row.zip,
-                    country: row.country
+                    country: row.country,
+                    avatar: userAvatar // Return the (potentially new) avatar
                 }
             });
         } else {
-            // New user, create account (no password for google users, use random placeholder)
+            // New user, create account
+            constUiAvatar = req.body.picture || ''; // Get picture from Google
             const crypto = require('crypto');
             const password = crypto.randomUUID();
-            const insertSql = "INSERT INTO users (name, email, password, role) VALUES (?,?,?,?)";
-            db.run(insertSql, [name, email, password, role], function (err) {
+            const insertSql = "INSERT INTO users (name, email, password, role, avatar) VALUES (?,?,?,?,?)";
+
+            db.run(insertSql, [name, email, password, role, constUiAvatar], function (err) {
                 if (err) return res.status(400).json({ "error": err.message });
 
                 res.json({
                     "message": "success",
-                    "user": { id: this.lastID, name, email, role }
+                    "user": {
+                        id: this.lastID,
+                        name,
+                        email,
+                        role,
+                        avatar: constUiAvatar
+                    }
                 });
             });
         }
