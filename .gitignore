@@ -1,8 +1,9 @@
-node_modules
-.env
-.env.local
-.env.production
-dist
-build
-.DS_Store
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/tf-key
+terraform/tf-key.pub
+terraform/.terraform.lock.hcl
 *.log
+.DS_Store
+node_modules/
