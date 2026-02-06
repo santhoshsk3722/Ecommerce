@@ -1,99 +1,64 @@
-﻿# TechOrbit - Premium E-Commerce Platform
+<div align="center">
 
-![TechOrbit Banner](https://via.placeholder.com/1200x400?text=TechOrbit+Preview)
+# 🛒 Ecommerce Web Application  
+### Modern Full-Stack Ecommerce Platform
 
-## 🚀 Project Overview
+A scalable and responsive ecommerce web application built using **React, Node.js, Express, and SQLite**, designed to demonstrate real-world product workflows, authentication, and backend integration.
 
-**TechOrbit** is a full-stack, feature-rich E-Commerce application designed to deliver a premium shopping experience. Built with a focus on performance, scalability, and modern UI/UX principles, it offers a seamless journey from product discovery to checkout.
+![React](https://img.shields.io/badge/Frontend-React-blue)
+![Node](https://img.shields.io/badge/Backend-Node.js-green)
+![Database](https://img.shields.io/badge/Database-SQLite-lightgrey)
+![Status](https://img.shields.io/badge/Status-Active-success)
 
-The platform includes advanced features such as AI-powered product summaries, visual search capabilities, real-time inventory tracking, and a comprehensive loyalty rewards system.
-
-## ✨ Key Features
-
-### 🛍️ Customer Experience
-- **Modern Responsive Design**: A sleek, mobile-first interface built with React and Framer Motion for smooth animations.
-- **Visual Search**: Upload an image to find similar products instantly using advanced client-side image processing.
-- **AI-Powered Insights**: "AI Verdict" summaries for products, aggregating review sentiment into quick, readable highlights.
-- **Smart Cart & Checkout**: Integrated coupon system, loyalty point redemption (TechCoins), and multiple simulated payment gateways (Stripe, UPI, COD).
-- **User Dashboard**: Order tracking, wishlist management, and profile customization.
-
-### 👨‍💼 Admin & Seller Tools
-- **Seller Dashboard**: Manage inventory, add/edit products, and track sales performance.
-- **Admin Control**: User management, platform-wide analytics, and system health monitoring.
-- **Security**: Role-Based Access Control (RBAC) securely separates Customer, Seller, and Admin functionalities.
-
-## 🛠️ Technology Stack
-
-### Frontend
-- **Framework**: [React](https://reactjs.org/) (Vite)
-- **Styling**: Vanilla CSS (Custom Design System with CSS Variables)
-- **Animations**: Framer Motion
-- **State Management**: Context API (Auth, Cart, Loyalty, Toast)
-- **Routing**: React Router DOM
-
-### Backend
-- **Runtime**: [Node.js](https://nodejs.org/)
-- **Framework**: Express.js
-- **Database**: SQLite (Simulated persistent storage for ease of setup)
-- **Authentication**: Custom JWT-based Auth & Simulated Google OAuth
-- **Image Processing**: Canvas API for client-side resizing/optimizations
-
-## ⚙️ Installation & Setup
-
-Follow these steps to run the project locally.
-
-### Prerequisites
-- Node.js (v14+)
-- npm or yarn
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/santhoshsk3722/Ecommerce.git
-cd Ecommerce
-```
-
-### 2. Backend Setup
-Navigate to the server directory and install dependencies.
-```bash
-cd server
-npm install
-npm start
-```
-*The server runs on http://localhost:5000*
-
-### 3. Frontend Setup
-Open a new terminal, navigate to the client directory, and install dependencies.
-```bash
-cd client
-npm install
-npm run dev
-```
-*The client runs on http://localhost:5173 (or similar)*
-
-## 📂 Project Structure
-
-```
-f:/antigravity/
-├── client/                 # Frontend React Application
-│   ├── src/
-│   │   ├── components/     # Reusable UI Blocks (NavBar, Cards, etc.)
-│   │   ├── contexts/       # Global State (Auth, Cart, Toast)
-│   │   ├── pages/          # Full Page Views (Home, Login, ProductDetail)
-│   │   └── utils/          # Helpers (Email Service, Formatters)
-│   └── ...
-├── server/                 # Backend Node.js API
-│   ├── db.js               # Database Connection & Schema
-│   ├── index.js            # API Routes & Server Logic
-│   └── ...
-└── README.md               # Project Documentation
-```
-
-## 🔮 Future Roadmap
-- [ ] Integration of real Payment Gateways (Stripe/Razorpay)
-- [ ] Migration to PostgreSQL/MongoDB for high-scale production
-- [ ] Real-time Notifications using WebSockets
-- [ ] Enhanced Mobile App (React Native)
+</div>
 
 ---
-**Developed by Santhosh Kumar P S**
+
+## ✨ Overview
+
+This project is a **full-stack ecommerce platform** that supports product browsing, cart management, authentication, and order handling.  
+It is built to showcase **production-ready architecture**, clean UI, and RESTful APIs.
+
+Perfect for:
+- Portfolio showcase  
+- Learning full-stack development  
+- Demonstrating real-world ecommerce workflows  
+
+---
+
+## 🚀 Features
+
+### 🧑 User Features
+- User authentication (Login / Register)
+- Browse products with details
+- Add / remove items from cart
+- Order placement workflow
+- Responsive UI for all devices
+
+### 🛠 Admin Features
+- Product management (Add / Update / Delete)
+- Order tracking
+- User management
+- Role-based access control
+
+---
+
+## 🧰 Tech Stack
+
+### Frontend
+- React (Vite)
+- HTML5, CSS3
+- JavaScript (ES6+)
+
+### Backend
+- Node.js
+- Express.js
+- REST APIs
+
+### Database
+- SQLite
+
+---
+
+## 📁 Project Structure
 
