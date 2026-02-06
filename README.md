@@ -62,3 +62,51 @@ Perfect for:
 
 ## 📁 Project Structure
 
+Ecommerce/
+│
+├── client/ # React frontend
+├── server/ # Node.js backend
+├── README.md
+├── package.json
+└── .gitignore
+
+
+---
+
+## ⚙️ Installation & Setup
+
+1️⃣ Clone Repository
+```bash
+git clone https://github.com/santhoshsk3722/Ecommerce.git
+cd Ecommerce
+
+2️⃣ Backend Setup
+cd server
+npm install
+npm start
+
+Backend runs on: http://localhost:5000
+
+🔐 Environment Variables
+
+Create a .env file in the server directory if required:
+
+PORT=5000
+JWT_SECRET=your_secret_key
+
+🔮 Future Enhancements
+
+Payment gateway integration (Razorpay / Stripe)
+
+Advanced product filters
+
+Wishlist functionality
+
+Admin analytics dashboard
+
+Deployment with Docker & CI/CD
+
+🤝 Contributing
+
+Contributions are welcome!
+Feel free to fork the repo and submit a pull request.
